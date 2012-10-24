@@ -340,31 +340,31 @@ describe Spree::Order do
     end
   end
 
+  context "#display_outstanding_balance" do
+    it "returns the value as a spree money" do
+      order.stub(:outstanding_balance) { 10.55 }
+      order.display_outstanding_balance.should == Spree::Money.new(10.55)
+    end
+  end
+
+  context "#display_item_total" do
+    it "returns the value as a spree money" do
+      order.stub(:item_total) { 10.55 }
+      order.display_item_total.should == Spree::Money.new(10.55)
+    end
+  end
+
+  context "#display_adjustment_total" do
+    it "returns the value as a spree money" do
+      order.adjustment_total = 10.55
+      order.display_adjustment_total.should == Spree::Money.new(10.55)
+    end
+  end
+
   context "#display_total" do
-    before { order.total = 10.55 }
-
-    context "with display_currency set to true" do
-      before { Spree::Config[:display_currency] = true }
-
-      it "shows the currency" do
-        order.display_total.to_s.should == "$10.55 USD"
-      end
-    end
-
-    context "with display_currency set to false" do
-      before { Spree::Config[:display_currency] = false }
-
-      it "does not include the currency" do
-        order.display_total.to_s.should == "$10.55"
-      end
-    end
-
-    context "with currency set to JPY" do
-      before { order.stub(:currency) { 'JPY' } }
-
-      it "displays the currency in yen" do
-        order.display_total.to_s.should == "¥11"
-      end
+    it "returns the value as a spree money" do
+      order.total = 10.55
+      order.display_total.should == Spree::Money.new(10.55)
     end
   end
 

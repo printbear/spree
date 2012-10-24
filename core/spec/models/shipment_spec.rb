@@ -203,4 +203,11 @@ describe Spree::Shipment do
       shipment.currency.should == "USD"
     end
   end
+
+  context "display_cost" do
+    it "retuns a Spree::Money" do
+      shipment.stub(:cost) { 21.22 }
+      shipment.display_cost.should == Spree::Money.new(21.22)
+    end
+  end
 end

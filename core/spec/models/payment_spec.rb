@@ -530,4 +530,10 @@ describe Spree::Payment do
       payment.currency.should == "USD"
     end
   end
+
+  context "#display_amount" do
+    it "returns a Spree::Money for this amount" do
+      payment.display_amount.should == Spree::Money.new(payment.amount)
+    end
+  end
 end

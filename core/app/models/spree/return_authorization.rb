@@ -27,6 +27,10 @@ module Spree
       Spree::Config[:currency]
     end
 
+    def display_amount
+      Spree::Money.new(amount, { :currency => currency })
+    end
+
     def add_variant(variant_id, quantity)
       order_units = order.inventory_units.group_by(&:variant_id)
       returned_units = inventory_units.group_by(&:variant_id)

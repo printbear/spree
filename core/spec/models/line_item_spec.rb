@@ -244,4 +244,11 @@ describe Spree::LineItem do
       line_item.currency == 'USD'
     end
   end
+
+  describe ".display_amount" do
+    before { line_item.price = 3.50 }
+    it "returns a Spree::Money representing the total for this line item" do
+      line_item.display_amount.to_s.should == "$17.50"
+    end
+  end
 end

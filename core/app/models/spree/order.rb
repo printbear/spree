@@ -110,6 +110,18 @@ module Spree
       Spree::Config[:currency]
     end
 
+    def display_outstanding_balance
+      Spree::Money.new(outstanding_balance, { :currency => currency })
+    end
+
+    def display_item_total
+      Spree::Money.new(item_total, { :currency => currency })
+    end
+
+    def display_adjustment_total
+      Spree::Money.new(adjustment_total, { :currency => currency })
+    end
+
     def display_total
       Spree::Money.new(total, { :currency => currency })
     end

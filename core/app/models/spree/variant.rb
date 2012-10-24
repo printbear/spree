@@ -50,6 +50,11 @@ module Spree
       Spree::Config[:currency]
     end
 
+    def display_amount
+      Spree::Money.new(price, { :currency => currency })
+    end
+    alias :display_price :display_amount
+
     def price=(price)
       self[:price] = parse_price(price) if price.present?
     end
