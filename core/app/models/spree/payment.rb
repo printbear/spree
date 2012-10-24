@@ -47,6 +47,10 @@ module Spree
       end
     end
 
+    def currency
+      Spree::Config[:currency]
+    end
+
     def offsets_total
       offsets.map(&:amount).sum
     end

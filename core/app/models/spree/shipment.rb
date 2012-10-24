@@ -42,6 +42,10 @@ module Spree
       self.shipped_at = Time.now
     end
 
+    def currency
+      Spree::Config[:currency]
+    end
+
     # The adjustment amount associated with this shipment (if any.)  Returns only the first adjustment to match
     # the shipment but there should never really be more than one.
     def cost

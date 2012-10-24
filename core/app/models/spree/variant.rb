@@ -46,6 +46,10 @@ module Spree
       end
     end
 
+    def currency
+      Spree::Config[:currency]
+    end
+
     def price=(price)
       self[:price] = parse_price(price) if price.present?
     end

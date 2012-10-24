@@ -109,4 +109,9 @@ describe Spree::ReturnAuthorization do
     end
   end
 
+  context "currency" do
+    it "returns the globally configured currency" do
+      return_authorization.currency.should == "USD"
+    end
+  end
 end

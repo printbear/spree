@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'spec_helper'
 
 class FakeCalculator < Spree::Calculator
@@ -355,6 +357,20 @@ describe Spree::Order do
       it "does not include the currency" do
         order.display_total.to_s.should == "$10.55"
       end
+    end
+
+    context "with currency set to JPY" do
+      before { order.stub(:currency) { 'JPY' } }
+
+      it "displays the currency in yen" do
+        order.display_total.to_s.should == "¥11"
+      end
+    end
+  end
+
+  context "#currency" do
+    it "returns the globally configured currency" do
+      order.currency.should == "USD"
     end
   end
 

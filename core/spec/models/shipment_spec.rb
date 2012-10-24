@@ -197,4 +197,10 @@ describe Spree::Shipment do
       shipment.run_callbacks(:save, :after)
     end
   end
+
+  context "currency" do
+    it "returns the globally configured currency" do
+      shipment.currency.should == "USD"
+    end
+  end
 end

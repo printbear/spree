@@ -35,6 +35,10 @@ module Spree
       self.quantity -= 1
     end
 
+    def currency
+      Spree::Config[:currency]
+    end
+
     def amount
       price * quantity
     end

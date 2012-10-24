@@ -269,4 +269,10 @@ describe Spree::Variant do
       end
     end
   end
+
+  context "#currency" do
+    it "returns the globally configured currency" do
+      variant.currency.should == "USD"
+    end
+  end
 end

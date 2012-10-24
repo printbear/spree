@@ -238,4 +238,10 @@ describe Spree::LineItem do
       lambda { adjustment.reload }.should raise_error(ActiveRecord::RecordNotFound)
     end
   end
+
+  describe '.currency' do
+    it 'returns the globally configured currency' do
+      line_item.currency == 'USD'
+    end
+  end
 end
