@@ -2,6 +2,8 @@ require 'money'
 
 module Spree
   class Money
+    attr_reader :money
+
     def initialize(amount, options={})
       @money = ::Money.parse([amount, (options[:currency] || Spree::Config[:currency])].join)
       @options = {}
@@ -14,6 +16,10 @@ module Spree
 
     def to_s
       @money.format(@options)
+    end
+
+    def ==(obj)
+      @money == obj.money
     end
   end
 end
