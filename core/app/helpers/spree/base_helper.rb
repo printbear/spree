@@ -144,6 +144,11 @@ module Spree
        Gem.available?(name)
     end
 
+    def money(amount)
+      ActiveSupport::Deprecation.warn("[SPREE] Spree::BaseHelper#money will be deprecated.  It relies upon a single master currency.  Please use Spree::Money values instead")
+      Spree::Money.new(amount)
+    end
+
     def pretty_time(time)
       [I18n.l(time.to_date, :format => :long),
         time.strftime("%H:%m %p")].join(" ")
