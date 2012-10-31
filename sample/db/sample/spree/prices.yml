@@ -1,0 +1,116 @@
+small-red-baseball-price:
+  variant: small_red_baseball
+  amount: 19.99
+  currency: USD
+small-blue-baseball-price:
+  variant: small_blue_baseball
+  amount: 19.99
+  currency: USD
+small-green-baseball-price:
+  variant: small_green_baseball
+  amount: 19.99
+  currency: USD
+med-red-baseball-price:
+  variant: med_red_baseball
+  amount: 19.99
+  currency: USD
+med-blue-baseball-price:
+  variant: med_blue_baseball
+  amount: 19.99
+  currency: USD
+med-green-baseball-price:
+  variant: med_green_baseball
+  amount: 19.99
+  currency: USD
+large-red-baseball-price:
+  variant: large_red_baseball
+  amount: 19.99
+  currency: USD
+large-blue-baseball-price:
+  variant: large_blue_baseball
+  amount: 19.99
+  currency: USD
+large-green-baseball-price:
+  variant: large_green_baseball
+  amount: 19.99
+  currency: USD
+xlarge-green-baseball-price:
+  variant: xlarge_green_baseball
+  amount: 21.99
+  currency: USD
+ror_baseball_jersey_v-price:
+  variant: ror_baseball_jersey_v
+  amount: 19.99
+  currency: USD
+ror_tote_v-price:
+  variant: ror_tote_v
+  amount: 15.99
+  currency: USD
+ror_bag_v-price:
+  variant: ror_bag_v
+  amount: 22.99
+  currency: USD
+ror_jr_spaghetti_v-price:
+  variant: ror_jr_spaghetti_v
+  amount: 19.99
+  currency: USD
+ror_mug_v-price:
+  variant: ror_mug_v
+  amount: 13.99
+  currency: USD
+ror_ringer_v-price:
+  variant: ror_ringer_v
+  amount: 19.99
+  currency: USD
+ror_stein_v-price:
+  variant: ror_stein_v
+  amount: 16.99
+  currency: USD
+apache_baseball_jersey_v-price:
+  variant: apache_baseball_jersey_v
+  amount: 19.99
+  currency: USD
+ruby_baseball_jersey_v-price:
+  variant: ruby_baseball_jersey_v
+  amount: 19.99
+  currency: USD
+spree_baseball_jersey_v-price:
+  variant: spree_baseball_jersey_v
+  amount: 19.99
+  currency: USD
+spree_stein_v-price:
+  variant: spree_stein_v
+  amount: 16.99
+  currency: USD
+spree_jr_spaghetti_v-price:
+  variant: spree_jr_spaghetti_v
+  amount: 19.99
+  currency: USD
+spree_mug_v-price:
+  variant: spree_mug_v
+  amount: 13.99
+  currency: USD
+spree_ringer_v-price:
+  variant: spree_ringer_v
+  amount: 17.99
+  currency: USD
+spree_tote_v-price:
+  variant: spree_tote_v
+  amount: 15.99
+  currency: USD
+spree_bag_v-price:
+  variant: spree_bag_v
+  amount: 22.99
+  currency: USD
+small-spree-baseball-price:
+  variant: small_spree_baseball
+  amount: 19.99
+  currency: USD
+med-spree-baseball-price:
+  variant: med_spree_baseball
+  amount: 19.99
+  currency: USD
+large-spree-baseball-price:
+  variant: large_spree_baseball
+  amount: 19.99
+  currency: USD

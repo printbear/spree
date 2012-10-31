@@ -16,12 +16,22 @@ module Spree
     has_and_belongs_to_many :option_values, :join_table => :spree_option_values_variants
     has_many :images, :as => :viewable, :order => :position, :dependent => :destroy
 
-    validate :check_price
-    validates :price, :numericality => { :greater_than_or_equal_to => 0 }, :presence => true
+    has_one :default_price,
+      :class_name => 'Spree::Price',
+      :conditions => { :currency => Spree::Config[:currency] },
+      :dependent => :destroy
+
+    delegate_belongs_to :default_price, :display_price, :display_amount, :price, :price= if Spree::Price.table_exists?
+
+    has_many :prices,
+      :class_name => 'Spree::Price',
+      :dependent => :destroy
+
     validates :cost_price, :numericality => { :greater_than_or_equal_to => 0, :allow_nil => true } if self.table_exists? && self.column_names.include?('cost_price')
     validates :count_on_hand, :numericality => true
 
     after_save :process_backorders
+    after_save :save_default_price
     after_save :recalculate_product_on_hand, :if => :is_master?
 
     # default variant scope only lists non-deleted variants
@@ -44,19 +54,6 @@ module Spree
       else
         self.count_on_hand = new_level unless self.on_demand
       end
-    end
-
-    def currency
-      Spree::Config[:currency]
-    end
-
-    def display_amount
-      Spree::Money.new(price, { :currency => currency })
-    end
-    alias :display_price :display_amount
-
-    def price=(price)
-      self[:price] = parse_price(price) if price.present?
     end
 
     def cost_price=(price)
@@ -180,19 +177,15 @@ module Spree
         price.to_d
       end
 
-      # Ensures a new variant takes the product master price when price is not supplied
-      def check_price
-        if price.nil?
-          raise 'Must supply price for variant or master.price for product.' if self == product.master
-          self.price = product.master.price
-        end
-      end
-
       def recalculate_product_on_hand
         on_hand = product.on_hand
         if Spree::Config[:track_inventory_levels] && on_hand != (1.0 / 0) # Infinity
           product.update_column(:count_on_hand, on_hand)
         end
+      end
+
+      def save_default_price
+        default_price.save if default_price && (default_price.changed? || default_price.new_record?)
       end
   end
 end
