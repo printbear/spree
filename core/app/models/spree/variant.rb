@@ -18,7 +18,7 @@ module Spree
 
     has_one :default_price,
       :class_name => 'Spree::Price',
-      :conditions => { :currency => Spree::Config[:currency] },
+      :conditions => proc { { :currency => Spree::Config[:currency] } },
       :dependent => :destroy
 
     delegate_belongs_to :default_price, :display_price, :display_amount, :price, :price= if Spree::Price.table_exists?
