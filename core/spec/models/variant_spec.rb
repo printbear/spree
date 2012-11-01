@@ -279,7 +279,7 @@ describe Spree::Variant do
   context "#display_amount" do
     it "retuns a Spree::Money" do
       variant.price = 21.22
-      variant.display_amount.should == Spree::Money.new(21.22)
+      variant.display_amount.should == "$21.22"
     end
   end
 end

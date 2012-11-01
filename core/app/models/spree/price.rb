@@ -2,15 +2,19 @@ module Spree
   class Price < ActiveRecord::Base
     belongs_to :variant, :class_name => 'Spree::Variant'
 
-    #validate :check_price
+    validate :check_price
     validates :amount, :numericality => { :greater_than_or_equal_to => 0 }, :presence => true
 
     attr_accessible :variant_id, :currency, :amount
 
     def display_amount
-      Spree::Money.new(amount, { :currency => currency })
+      money.to_s
     end
     alias :display_price :display_amount
+
+    def money
+      Spree::Money.new(amount, { :currency => currency })
+    end
 
     def price
       amount
@@ -24,9 +28,11 @@ module Spree
     # Ensures a new variant takes the product master price when price is not supplied
     def check_price
       if price.nil?
-        raise 'Must supply price for variant or master.price for product.' if self == product.master
+        raise 'Must supply price for variant or master.price for product.' if variant == variant.product.master
         self.price = variant.product.master.price
-        self.current = Spree::Config[:currency]
+      end
+      if currency.nil?
+        self.currency = Spree::Config[:currency]
       end
     end
 

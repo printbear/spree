@@ -21,12 +21,13 @@ module Spree
       :conditions => proc { { :currency => Spree::Config[:currency] } },
       :dependent => :destroy
 
-    delegate_belongs_to :default_price, :display_price, :display_amount, :price, :price= if Spree::Price.table_exists?
+    delegate_belongs_to :default_price, :display_price, :display_amount, :price, :price=, :currency if Spree::Price.table_exists?
 
     has_many :prices,
       :class_name => 'Spree::Price',
       :dependent => :destroy
 
+    validates :price, :numericality => { :greater_than_or_equal_to => 0 }, :presence => true
     validates :cost_price, :numericality => { :greater_than_or_equal_to => 0, :allow_nil => true } if self.table_exists? && self.column_names.include?('cost_price')
     validates :count_on_hand, :numericality => true
 
