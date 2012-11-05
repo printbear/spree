@@ -27,6 +27,7 @@ module Spree
       :class_name => 'Spree::Price',
       :dependent => :destroy
 
+    validate :check_price
     validates :price, :numericality => { :greater_than_or_equal_to => 0 }, :presence => true
     validates :cost_price, :numericality => { :greater_than_or_equal_to => 0, :allow_nil => true } if self.table_exists? && self.column_names.include?('cost_price')
     validates :count_on_hand, :numericality => true
@@ -163,6 +164,17 @@ module Spree
 
             self.update_attribute_without_callbacks(:count_on_hand, new_level)
           end
+        end
+      end
+
+      # Ensures a new variant takes the product master price when price is not supplied
+      def check_price
+        if price.nil?
+          raise 'Must supply price for variant or master.price for product.' if self == product.master
+          self.price = product.master.price
+        end
+        if currency.nil?
+          self.currency = Spree::Config[:currency]
         end
       end
 
