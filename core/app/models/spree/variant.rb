@@ -171,6 +171,7 @@ module Spree
       def check_price
         if price.nil?
           raise 'Must supply price for variant or master.price for product.' if self == product.master
+          raise 'No master variant found to infer price' unless product.master
           self.price = product.master.price
         end
         if currency.nil?

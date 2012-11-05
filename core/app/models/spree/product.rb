@@ -180,6 +180,8 @@ module Spree
       variant.sku = 'COPY OF ' + master.sku
       variant.deleted_at = nil
       variant.images = master.images.map { |i| image_dup.call i }
+      variant.price = master.price
+      variant.currency = master.currency
       p.master = variant
 
       # don't dup the actual variants, just the characterising types
