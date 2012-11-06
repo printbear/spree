@@ -2,6 +2,7 @@ module Spree
   class Price < ActiveRecord::Base
     belongs_to :variant, :class_name => 'Spree::Variant'
 
+    validate :check_price
     validates :amount, :numericality => { :greater_than_or_equal_to => 0 }, :presence => true
 
     attr_accessible :variant_id, :currency, :amount
@@ -24,6 +25,16 @@ module Spree
     end
 
     private
+    def check_price
+      raise "Price must belong to a variant" if variant.nil?
+      if amount.nil?
+        self.amount = variant.product.master.default_price.amount
+      end
+      if currency.nil?
+        self.currency = variant.product.master.default_price.currency
+      end
+    end
+
     # strips all non-price-like characters from the price, taking into account locale settings
     def parse_price(price)
       return price unless price.is_a?(String)
