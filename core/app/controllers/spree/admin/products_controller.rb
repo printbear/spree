@@ -80,7 +80,7 @@ module Spree
 
           if params[:q][:s].include?("master_price")
             # PostgreSQL compatibility
-            @collection = @collection.group("spree_variants.price")
+            @collection = @collection.group("spree_prices.amount")
           end
           @collection
         end
@@ -97,7 +97,7 @@ module Spree
         end
 
         def product_includes
-         [{:variants => [:images, {:option_values => :option_type}]}, {:master => :images}]
+         [{:variants => [:images, {:option_values => :option_type}]}, {:master => [:images, :default_price]}]
         end
 
     end
