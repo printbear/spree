@@ -1,41 +1,41 @@
 small-red-baseball-price:
-  variant: small_red_baseball
+  variant: small-red-baseball
   amount: 19.99
   currency: USD
 small-blue-baseball-price:
-  variant: small_blue_baseball
+  variant: small-blue-baseball
   amount: 19.99
   currency: USD
 small-green-baseball-price:
-  variant: small_green_baseball
+  variant: small-green-baseball
   amount: 19.99
   currency: USD
 med-red-baseball-price:
-  variant: med_red_baseball
+  variant: med-red-baseball
   amount: 19.99
   currency: USD
 med-blue-baseball-price:
-  variant: med_blue_baseball
+  variant: med-blue-baseball
   amount: 19.99
   currency: USD
 med-green-baseball-price:
-  variant: med_green_baseball
+  variant: med-green-baseball
   amount: 19.99
   currency: USD
 large-red-baseball-price:
-  variant: large_red_baseball
+  variant: large-red-baseball
   amount: 19.99
   currency: USD
 large-blue-baseball-price:
-  variant: large_blue_baseball
+  variant: large-blue-baseball
   amount: 19.99
   currency: USD
 large-green-baseball-price:
-  variant: large_green_baseball
+  variant: large-green-baseball
   amount: 19.99
   currency: USD
 xlarge-green-baseball-price:
-  variant: xlarge_green_baseball
+  variant: xlarge-green-baseball
   amount: 21.99
   currency: USD
 ror_baseball_jersey_v-price:
@@ -103,14 +103,14 @@ spree_bag_v-price:
   amount: 22.99
   currency: USD
 small-spree-baseball-price:
-  variant: small_spree_baseball
+  variant: small-spree-baseball
   amount: 19.99
   currency: USD
 med-spree-baseball-price:
-  variant: med_spree_baseball
+  variant: med-spree-baseball
   amount: 19.99
   currency: USD
 large-spree-baseball-price:
-  variant: large_spree_baseball
+  variant: large-spree-baseball
   amount: 19.99
   currency: USD
