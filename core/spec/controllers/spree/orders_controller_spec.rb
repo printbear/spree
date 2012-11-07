@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Spree::OrdersController do
   let(:user) { create(:user) }
-  let(:order) { mock_model(Spree::Order, :number => "R123", :reload => nil, :save! => true, :coupon_code => nil, :user => user, :completed? => false)}
+  let(:order) { mock_model(Spree::Order, :number => "R123", :reload => nil, :save! => true, :coupon_code => nil, :user => user, :completed? => false, :currency => "USD")}
   before do
     Spree::Order.stub(:find).with(1).and_return(order)
     #ensure no respond_overrides are in effect
@@ -48,7 +48,7 @@ describe Spree::OrdersController do
       order.stub(:update_attributes).and_return true
       order.stub(:line_items).and_return([])
       order.stub(:line_items=).with([])
-      Spree::Order.stub(:find_by_id).and_return(order)
+      Spree::Order.stub(:find_by_id_and_currency).and_return(order)
     end
 
     it "should not result in a flash success" do

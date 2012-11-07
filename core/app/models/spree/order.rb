@@ -56,6 +56,7 @@ module Spree
     accepts_nested_attributes_for :shipments
 
     # Needs to happen before save_permalink is called
+    before_validation :set_currency
     before_validation :generate_order_number, :on => :create
     before_validation :clone_billing_address, :if => :use_billing?
     attr_accessor :use_billing
@@ -104,10 +105,6 @@ module Spree
     # For compatiblity with Calculator::PriceSack
     def amount
       line_items.sum(&:amount)
-    end
-
-    def currency
-      Spree::Config[:currency]
     end
 
     def display_outstanding_balance
@@ -551,6 +548,10 @@ module Spree
 
       def use_billing?
         @use_billing == true || @use_billing == "true" || @use_billing == "1"
+      end
+
+      def set_currency
+        self.currency = Spree::Config[:currency] if currency.nil?
       end
   end
 end

@@ -368,12 +368,6 @@ describe Spree::Order do
     end
   end
 
-  context "#currency" do
-    it "returns the globally configured currency" do
-      order.currency.should == "USD"
-    end
-  end
-
   # Regression test for #2191
   context "when an order has an adjustment that zeroes the total, but another adjustment for shipping that raises it above zero" do
     let!(:persisted_order) { create(:order) }
