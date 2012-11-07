@@ -145,6 +145,10 @@ module Spree
       end
     end
 
+    def has_default_price?
+      !self.default_price.nil?
+    end
+
     private
 
       def process_backorders
@@ -170,8 +174,8 @@ module Spree
       # Ensures a new variant takes the product master price when price is not supplied
       def check_price
         if price.nil?
+          raise 'No master variant found to infer price' unless (product && product.master)
           raise 'Must supply price for variant or master.price for product.' if self == product.master
-          raise 'No master variant found to infer price' unless product.master
           self.price = product.master.price
         end
         if currency.nil?

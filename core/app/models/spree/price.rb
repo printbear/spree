@@ -3,11 +3,12 @@ module Spree
     belongs_to :variant, :class_name => 'Spree::Variant'
 
     validate :check_price
-    validates :amount, :numericality => { :greater_than_or_equal_to => 0 }, :presence => true
+    validates :amount, :numericality => { :greater_than_or_equal_to => 0 }, :allow_nil => true
 
     attr_accessible :variant_id, :currency, :amount
 
     def display_amount
+      return nil if amount.nil?
       money.to_s
     end
     alias :display_price :display_amount
@@ -28,10 +29,18 @@ module Spree
     def check_price
       raise "Price must belong to a variant" if variant.nil?
       if amount.nil?
-        self.amount = variant.product.master.default_price.amount
+        if variant.product.master.default_price.nil?
+          self.amount = nil
+        else
+          self.amount = variant.product.master.default_price.amount
+        end
       end
       if currency.nil?
-        self.currency = variant.product.master.default_price.currency
+        if variant.product.master.default_price.nil?
+          self.currency = Spree::Config[:currency]
+        else
+          self.currency = variant.product.master.default_price.currency
+        end
       end
     end
 
