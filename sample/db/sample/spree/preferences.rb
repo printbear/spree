@@ -4,7 +4,7 @@ shipping_method.calculator.preferred_currency = 'USD'
 
 shipping_method = Spree::ShippingMethod.find_by_name("UPS Ground (EUR)")
 shipping_method.calculator.preferred_amount = 5
-shipping_method.calculator.preferred_currency = 'USD'
+shipping_method.calculator.preferred_currency = 'EUR'
 
 shipping_method = Spree::ShippingMethod.find_by_name("UPS One Day (USD)")
 shipping_method.calculator.preferred_amount = 15
