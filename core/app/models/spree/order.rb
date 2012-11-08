@@ -107,6 +107,10 @@ module Spree
       line_items.sum(&:amount)
     end
 
+    def currency
+      read_attribute(:currency) || Spree::Config[:currency]
+    end
+
     def display_outstanding_balance
       Spree::Money.new(outstanding_balance, { :currency => currency })
     end
@@ -551,7 +555,7 @@ module Spree
       end
 
       def set_currency
-        self.currency = Spree::Config[:currency] if currency.nil?
+        self.currency = Spree::Config[:currency] if read_attribute(:currency).nil?
       end
   end
 end
