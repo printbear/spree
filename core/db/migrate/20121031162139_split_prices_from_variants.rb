@@ -2,7 +2,7 @@ class SplitPricesFromVariants < ActiveRecord::Migration
   def up
     create_table :spree_prices do |t|
       t.integer :variant_id, :null => false
-      t.decimal :amount, :scale => 8, :precision => 2, :null => false
+      t.decimal :amount, :precision => 8, :scale => 2, :null => false
       t.string :currency
     end
 
