@@ -282,4 +282,14 @@ describe Spree::Variant do
       variant.display_amount.should == "$21.22"
     end
   end
+
+  context "#cost_currency" do
+    context "when cost currency is nil" do
+      before { variant.cost_currency = nil }
+      it "populates cost currency with the default value on save" do
+        variant.save!
+        variant.cost_currency.should == "USD"
+      end
+    end
+  end
 end

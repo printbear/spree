@@ -32,6 +32,7 @@ module Spree
     validates :cost_price, :numericality => { :greater_than_or_equal_to => 0, :allow_nil => true } if self.table_exists? && self.column_names.include?('cost_price')
     validates :count_on_hand, :numericality => true
 
+    before_validation :set_cost_currency
     after_save :process_backorders
     after_save :save_default_price
     after_save :recalculate_product_on_hand, :if => :is_master?
@@ -204,6 +205,10 @@ module Spree
 
       def save_default_price
         default_price.save if default_price && (default_price.changed? || default_price.new_record?)
+      end
+
+      def set_cost_currency
+        self.cost_currency = Spree::Config[:currency] if cost_currency.nil? || cost_currency.empty?
       end
   end
 end
