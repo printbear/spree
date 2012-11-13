@@ -21,15 +21,16 @@ module Spree
       amount
     end
 
-    def price=(price)
-      self[:amount] = parse_price(price) if price.present?
+    def amount=(amount)
+      self[:amount] = parse_price(amount)
     end
+    alias price= amount=
 
     private
     def check_price
       raise "Price must belong to a variant" if variant.nil?
       if amount.nil?
-        if variant.product.master.default_price.nil?
+        if variant.is_master? || variant.product.master.default_price.nil?
           self.amount = nil
         else
           self.amount = variant.product.master.default_price.amount
@@ -53,7 +54,7 @@ module Spree
       price.gsub!(non_price_characters, '') # strip everything else first
       price.gsub!(separator, '.') unless separator == '.' # then replace the locale-specific decimal separator with the standard separator if necessary
 
-      price.to_d
+      price.empty? ? nil : price.to_d
     end
 
   end
