@@ -21,9 +21,10 @@ module Spree
       amount
     end
 
-    def price=(price)
-      self[:amount] = parse_price(price) if price.present?
+    def amount=(amount)
+      self[:amount] = parse_price(amount)
     end
+    alias price= amount=
 
     private
     def check_price
@@ -53,7 +54,7 @@ module Spree
       price.gsub!(non_price_characters, '') # strip everything else first
       price.gsub!(separator, '.') unless separator == '.' # then replace the locale-specific decimal separator with the standard separator if necessary
 
-      price.to_d
+      price.empty? ? nil : price.to_d
     end
 
   end

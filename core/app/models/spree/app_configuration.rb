@@ -25,6 +25,7 @@ module Spree
     preference :allow_backorder_shipping, :boolean, :default => false # should only be true if you don't need to track inventory
     preference :allow_backorders, :boolean, :default => true
     preference :allow_checkout_on_gateway_error, :boolean, :default => false
+    preference :allow_currency_change, :boolean, :default => false
     preference :allow_guest_checkout, :boolean, :default => true
     preference :allow_ssl_in_development_and_test, :boolean, :default => false
     preference :allow_ssl_in_production, :boolean, :default => true
@@ -56,12 +57,14 @@ module Spree
     preference :require_master_price, :boolean, :default => true
     preference :shipment_inc_vat, :boolean, :default => false
     preference :shipping_instructions, :boolean, :default => false # Request instructions/info for shipping
+    preference :show_currency_selector, :boolean, :default => false
     preference :show_descendents, :boolean, :default => true
     preference :show_only_complete_orders_by_default, :boolean, :default => true
     preference :show_zero_stock_products, :boolean, :default => true
     preference :show_variant_full_price, :boolean, :default => false #Displays variant full price or difference with product price. Default false to be compatible with older behavior
     preference :site_name, :string, :default => 'Spree Demo Site'
     preference :site_url, :string, :default => 'demo.spreecommerce.com'
+    preference :supported_currencies, :string, :default => 'USD'
     preference :tax_using_ship_address, :boolean, :default => true
     preference :track_inventory_levels, :boolean, :default => true # will not track on_hand values for variants /products
 
