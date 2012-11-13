@@ -8,6 +8,7 @@ module Spree
             helper_method :title=
             helper_method :accurate_title
             helper_method :current_order
+            helper_method :selected_currency
 
             layout :get_layout
 

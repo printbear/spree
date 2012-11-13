@@ -977,6 +977,7 @@ en:
   short_description: "Short description"
   show: Show
   show_active: "Show Active"
+  show_currency_selector: "Show Currency Selector"
   show_deleted: "Show Deleted"
   show_incomplete_orders: "Show Incomplete Orders"
   show_only_complete_orders: "Only show complete orders"
@@ -1030,6 +1031,7 @@ en:
   successfully_created: "%{resource} has been successfully created!"
   successfully_removed: "%{resource} has been successfully removed!"
   successfully_updated: "%{resource} has been successfully updated!"
+  suppored_currencies: "Supported Currencies"
   system: System
   tax: Tax
   tax_categories: "Tax Categories"

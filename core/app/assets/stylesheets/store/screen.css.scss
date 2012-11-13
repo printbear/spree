@@ -324,6 +324,17 @@ mark {background-color: $link_text_color; color: $layout_background_color; font-
           }
         }
       }
+
+      &#currency-select {
+        float: right;
+        margin-right: 15px;
+
+        label {
+          color: $link_text_color;
+          font-size: $horizontal_navigation_font_size;
+          font-weight: normal;
+        }
+      }
     }
   }
 

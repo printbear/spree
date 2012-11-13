@@ -2,3 +2,4 @@
 //= require store/checkout
 //= require store/product
 //= require store/cart
+//= require store/currency
