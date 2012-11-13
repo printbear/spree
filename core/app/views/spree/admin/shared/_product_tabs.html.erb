@@ -18,6 +18,9 @@
       <li<%== ' class="active"' if current == 'Variants' %>>
         <%= link_to_with_icon 'icon-th-large', t(:variants),  admin_product_variants_url(@product) %>
       </li>
+      <li<%== ' class="active"' if current == 'Prices' %>>
+        <%= link_to_with_icon 'icon-th-large', t(:Prices),  admin_product_prices_url(@product) %>
+      </li>
       <li<%== ' class="active"' if current == 'Product Properties' %>>
         <%= link_to_with_icon 'icon-tasks', t(:product_properties), admin_product_product_properties_url(@product) %>
       </li>

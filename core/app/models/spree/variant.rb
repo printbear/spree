@@ -9,7 +9,7 @@ module Spree
     attr_accessible :name, :presentation, :cost_price, :lock_version,
                     :position, :on_demand, :on_hand, :option_value_ids,
                     :product_id, :option_values_attributes, :price,
-                    :weight, :height, :width, :depth, :sku
+                    :weight, :height, :width, :depth, :sku, :cost_currency
 
     has_many :inventory_units
     has_many :line_items
@@ -148,6 +148,10 @@ module Spree
 
     def has_default_price?
       !self.default_price.nil?
+    end
+
+    def price_in(currency)
+      prices.select{ |price| price.currency == currency }.first || Spree::Price.new(:variant_id => self.id, :currency => currency)
     end
 
     private
