@@ -56,7 +56,7 @@ module Spree
         end
 
         def supported_currencies
-          Spree::Config[:supported_currencies].split ','
+          Spree::Money.supported_currencies
         end
 
         def render_404(exception = nil)

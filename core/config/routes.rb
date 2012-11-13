@@ -5,6 +5,7 @@ Spree::Core::Engine.routes.draw do
   resources :products
 
   match '/locale/set', :to => 'locale#set'
+  match '/currency/set', :to => 'currency#set', :defaults => { :format => :json }, :as => :set_currency
 
   resources :tax_categories
 

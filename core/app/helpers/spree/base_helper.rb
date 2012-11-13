@@ -149,6 +149,10 @@ module Spree
       Spree::Money.new(amount)
     end
 
+    def selected_currency
+      session[:currency] || Spree::Config[:currency]
+    end
+
     def pretty_time(time)
       [I18n.l(time.to_date, :format => :long),
         time.strftime("%H:%m %p")].join(" ")

@@ -21,5 +21,9 @@ module Spree
     def ==(obj)
       @money == obj.money
     end
+
+    def self.supported_currencies
+      Spree::Config[:supported_currencies].split(',').map { |code| ::Money::Currency.find(code) }
+    end
   end
 end
