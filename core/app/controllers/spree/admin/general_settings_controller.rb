@@ -8,12 +8,15 @@ module Spree
         @preferences_security = [:allow_ssl_in_production,
                         :allow_ssl_in_staging, :allow_ssl_in_development_and_test,
                         :check_for_spree_alerts]
-        @preferences_currency = [:display_currency]
+        @preferences_currency = [:display_currency, :supported_currencies]
       end
 
       def update
         params.each do |name, value|
           next unless Spree::Config.has_preference? name
+          if name == "supported_currencies"
+            value = value.split(',').map { |curr| ::Money::Currency.find(curr.strip).try(:iso_code) }.concat([Spree::Config[:currency]]).uniq.compact.join(',')
+          end
           Spree::Config[name] = value
         end
         flash[:success] = t(:successfully_updated, :resource => t(:general_settings))
