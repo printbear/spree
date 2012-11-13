@@ -56,7 +56,7 @@ module Spree
         end
 
         def supported_currencies
-          ['EUR', 'USD']
+          Spree::Config[:supported_currencies].split ','
         end
 
         def render_404(exception = nil)

@@ -61,6 +61,7 @@ module Spree
     preference :show_variant_full_price, :boolean, :default => false #Displays variant full price or difference with product price. Default false to be compatible with older behavior
     preference :site_name, :string, :default => 'Spree Demo Site'
     preference :site_url, :string, :default => 'demo.spreecommerce.com'
+    preference :supported_currencies, :string, :default => 'USD'
     preference :tax_using_ship_address, :boolean, :default => true
     preference :track_inventory_levels, :boolean, :default => true # will not track on_hand values for variants /products
 
