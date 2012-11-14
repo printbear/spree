@@ -474,7 +474,7 @@ module Spree
 
     def merge!(order)
       order.line_items.each do |line_item|
-        self.add_variant(line_item.variant, line_item.quantity)
+        self.add_variant(line_item.variant, line_item.quantity) if line_item.currency == currency
       end
       order.destroy
     end
