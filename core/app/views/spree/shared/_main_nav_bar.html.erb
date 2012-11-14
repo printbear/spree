@@ -3,7 +3,7 @@
     <li id="home-link" data-hook><%= link_to t(:home), root_path %></li>
     <li id="link-to-cart" data-hook><%= link_to_cart %></li>
     <li id="currency-select" style="float: right; margin-right: 10px;" data-hook>
-      Currency: <%= select_tag(:currency, options_for_select(Spree::Money.supported_currencies, selected_currency), :data => { :href => set_currency_path }) %>
+      <label><%= t(:currency) %>:</label> <%= select_tag(:currency, options_for_select(Spree::Money.supported_currencies, selected_currency), :data => { :href => set_currency_path }) %>
     </li>
   </ul>
 </nav>
