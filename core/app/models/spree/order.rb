@@ -25,7 +25,7 @@ module Spree
 
     attr_accessible :line_items, :bill_address_attributes, :ship_address_attributes, :payments_attributes,
                     :ship_address, :bill_address, :line_items_attributes, :number,
-                    :shipping_method_id, :email, :use_billing, :special_instructions
+                    :shipping_method_id, :email, :use_billing, :special_instructions, :currency
 
     if Spree.user_class
       belongs_to :user, :class_name => Spree.user_class.to_s
@@ -232,15 +232,21 @@ module Spree
       return_authorizations.any? { |return_authorization| return_authorization.authorized? }
     end
     
-    def add_variant(variant, quantity = 1)
+    def add_variant(variant, quantity = 1, currency = nil)
       current_item = find_line_item_by_variant(variant)
       if current_item
         current_item.quantity += quantity
+        current_item.currency = currency unless currency.nil?
         current_item.save
       else
         current_item = LineItem.new(:quantity => quantity)
         current_item.variant = variant
-        current_item.price   = variant.price
+        if currency
+          current_item.currency = currency unless currency.nil?
+          current_item.price    = variant.price_in(currency).amount
+        else
+          current_item.price    = variant.price
+        end
         self.line_items << current_item
       end
 
