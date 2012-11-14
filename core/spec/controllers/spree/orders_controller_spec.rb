@@ -27,17 +27,17 @@ describe Spree::OrdersController do
       end
 
       it "should handle single variant/quantity pair" do
-        order.should_receive(:add_variant).with(@variant, 2)
+        order.should_receive(:add_variant).with(@variant, 2, order.currency)
         spree_post :populate, {:order_id => 1, :variants => {@variant.id => 2}}
       end
       it "should handle multiple variant/quantity pairs with shared quantity" do
         @variant.stub(:product_id).and_return(10)
-        order.should_receive(:add_variant).with(@variant, 1)
+        order.should_receive(:add_variant).with(@variant, 1, order.currency)
         spree_post :populate, {:order_id => 1, :products => {@variant.product_id => @variant.id}, :quantity => 1}
       end
       it "should handle multiple variant/quantity pairs with specific quantity" do
         @variant.stub(:product_id).and_return(10)
-        order.should_receive(:add_variant).with(@variant, 3)
+        order.should_receive(:add_variant).with(@variant, 3, order.currency)
         spree_post :populate, {:order_id => 1, :products => {@variant.product_id => @variant.id}, :quantity => {@variant.id.to_s => 3}}
       end
     end
