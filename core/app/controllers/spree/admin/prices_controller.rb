@@ -3,8 +3,6 @@ module Spree
     class PricesController < ResourceController
       belongs_to 'spree/product', :find_by => :permalink
 
-      before_filter :load_supported_currencies
-
       def create
         params[:vp].each do |variant_id, prices|
           variant = Spree::Variant.find(variant_id)
@@ -18,11 +16,6 @@ module Spree
         end
         render :action => :index
       end
-
-      private
-        def load_supported_currencies
-          @supported_currencies = supported_currencies
-        end
     end
   end
 end

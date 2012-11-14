@@ -55,6 +55,7 @@ module Spree
     preference :products_per_page, :integer, :default => 12
     preference :shipment_inc_vat, :boolean, :default => false
     preference :shipping_instructions, :boolean, :default => false # Request instructions/info for shipping
+    preference :show_currency_selector, :boolean, :default => false
     preference :show_descendents, :boolean, :default => true
     preference :show_only_complete_orders_by_default, :boolean, :default => true
     preference :show_zero_stock_products, :boolean, :default => true
