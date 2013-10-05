@@ -27,10 +27,13 @@ module Spree::Preferences
     end
 
     def get(key,fallback=nil)
+      puts "get(#{key.inspect})"
+      puts "  should_persist? #{should_persist?}"
       # return the retrieved value, if it's in the cache
       # use unless nil? incase the value is actually boolean false
       #
       unless (val = @cache.read(key)).nil?
+        puts "  = #{val} (cached)"
         return val
       end
 
@@ -43,6 +46,8 @@ module Spree::Preferences
           # it does exist, so let's put it back into the cache
           @cache.write(preference.key, preference.value)
 
+          puts "  = #{preference.value} (loaded+saved)"
+
           # and return the value
           return preference.value
         end
@@ -52,6 +57,7 @@ module Spree::Preferences
         # cache fallback so we won't hit the db above on
         # subsequent queries for the same key
         #
+        puts "  = #{fallback} (fallback+saved)"
         @cache.write(key, fallback)
       end
 
