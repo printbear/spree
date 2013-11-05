@@ -183,6 +183,34 @@ module Spree
             return false unless self.state.present? && has_checkout_step?(state) && has_checkout_step?(self.state)
             checkout_step_index(state) > checkout_step_index(self.state)
           end
+
+          define_callbacks :updating_from_params
+
+          set_callback :updating_from_params, :before, :update_params_payment_source
+
+          def update_from_params(order_params)
+            success = false
+            @updating_params = order_params
+            run_callbacks :updating_from_params do
+              success = self.update_attributes(@updating_params[:order])
+            end
+            @updating_params = nil
+            success
+          end
+
+          private
+          # For payment step, filter order parameters to produce the expected nested attributes for a
+          # single payment and its source, discarding attributes for payment methods other than the one selected
+          def update_params_payment_source
+            if self.payment?
+              if @updating_params[:payment_source].present? && source_params = @updating_params.delete(:payment_source)[@updating_params[:order][:payments_attributes].first[:payment_method_id].underscore]
+                @updating_params[:order][:payments_attributes].first[:source_attributes] = source_params
+              end
+              if (@updating_params[:order][:payments_attributes])
+                @updating_params[:order][:payments_attributes].first[:amount] = self.total
+              end
+            end
+          end
         end
       end
     end
