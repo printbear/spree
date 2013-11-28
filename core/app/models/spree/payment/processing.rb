@@ -113,14 +113,11 @@ module Spree
     end
 
     def gateway_options
-      options = { :email    => order.email,
-                  :customer => order.email,
-                  :ip       => order.last_ip_address,
-                  # Need to pass in a unique identifier here to make some
-                  # payment gateways happy.
-                  #
-                  # For more information, please see Spree::Payment#set_unique_identifier
-                  :order_id => gateway_order_id }
+      options = { :email       => order.email,
+                  :customer    => order.email,
+                  :ip          => order.last_ip_address,
+                  :customer_id => order.user_id,
+                  :order_id => "#{order.number}-#{self.identifier}" }
 
       options.merge!({ :shipping => order.ship_total * 100,
                        :tax      => order.tax_total * 100,
