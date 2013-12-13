@@ -1,12 +1,8 @@
 Spree::OrdersController.class_eval do
+  before_filter :set_order, only: [:update]
+  before_filter :sanitize_line_items
 
   def update
-    @order = current_order
-    unless @order
-      flash[:error] = t(:order_not_found)
-      redirect_to root_path and return
-    end
-
     if @order.update_attributes(params[:order])
       render :edit and return unless apply_coupon_code
 
@@ -28,4 +24,17 @@ Spree::OrdersController.class_eval do
     end
   end
 
+  private
+
+  def set_order
+    # Ensures @order is never nil.
+    # Prevents edge case: Modifying a completed order
+    @order = current_order(true)
+  end
+
+  def sanitize_line_items
+    # Ensures an order with no line items won't try to update them if present in params.
+    # Prevents edge case: Modifying a destroyed order.
+    params[:order].delete(:line_items_attributes) if @order.line_items.empty?
+  end
 end
