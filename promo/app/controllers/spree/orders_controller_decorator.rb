@@ -1,6 +1,6 @@
 Spree::OrdersController.class_eval do
   before_filter :set_order, only: [:update]
-  before_filter :sanitize_line_items
+  before_filter :sanitize_line_items, only: [:update]
 
   def update
     if @order.update_attributes(params[:order])
