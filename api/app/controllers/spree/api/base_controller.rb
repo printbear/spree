@@ -87,7 +87,7 @@ module Spree
 
       def invalid_resource!(resource)
         @resource = resource
-        render "spree/api/errors/invalid_resource", :status => 422
+        render "spree/api/errors/invalid_resource", :status => 422 and return
       end
 
       def api_key
