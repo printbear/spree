@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'state_machine', '= 1.1.2'
   s.add_dependency 'ffaker', '~> 1.12.0'
   s.add_dependency 'paperclip', '~> 2.8'
-  s.add_dependency 'aws-sdk', '~> 1.3.4'
+  s.add_dependency 'aws-sdk', '~> 1.11.0'
   s.add_dependency 'ransack', '0.7.2'
   s.add_dependency 'activemerchant', '~> 1.31'
   s.add_dependency 'json', '>= 1.5.5'
