@@ -2,7 +2,7 @@ module Spree
   module Api
     class CheckoutsController < Spree::Api::BaseController
 
-      before_filter :load_order,     only: [:show, :update, :next, :advance]
+      before_filter :load_order,     only: [:update, :next, :advance]
       before_filter :associate_user, only: :update
 
       include Spree::Core::ControllerHelpers::Auth
@@ -32,7 +32,7 @@ module Spree
       end
 
       def show
-        respond_with(@order, default_template: 'spree/api/orders/show', status: 200)
+        redirect_to(api_order_path(params[:id]), status: 301)
       end
 
       def update
