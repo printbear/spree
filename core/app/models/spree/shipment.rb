@@ -221,9 +221,13 @@ module Spree
     end
 
     def to_package
+      counts = inventory_units.group(:variant_id, :state).count
+      variant_ids = counts.map{|(variant_id, _), _| variant_id }.uniq
+      variants = Hash[Variant.where(id: variant_ids).map{|v| [v.id, v] }]
+
       package = Stock::Package.new(stock_location, order)
-      inventory_units.includes(:variant).each do |inventory_unit|
-        package.add inventory_unit.variant, 1, inventory_unit.state_name
+      counts.each do |(variant_id, state), quantity|
+        package.add variants[variant_id], quantity, state.to_sym
       end
       package
     end
