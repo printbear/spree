@@ -24,6 +24,7 @@ describe Spree::InventoryUnit do
 
     let!(:unit) do
       unit = shipment.inventory_units.build
+      unit.quantity = 1
       unit.state = 'backordered'
       unit.variant_id = stock_item.variant.id
       unit.order_id = order.id
@@ -43,6 +44,7 @@ describe Spree::InventoryUnit do
     it "does not find inventory units that aren't backordered" do
       on_hand_unit = shipment.inventory_units.build
       on_hand_unit.state = 'on_hand'
+      on_hand_unit.quantity = 1
       on_hand_unit.save!
 
       Spree::InventoryUnit.backordered_for_stock_item(stock_item).should_not include(on_hand_unit)
@@ -52,6 +54,7 @@ describe Spree::InventoryUnit do
       other_variant_unit = shipment.inventory_units.build
       other_variant_unit.state = 'backordered'
       other_variant_unit.variant = create(:variant)
+      other_variant_unit.quantity = 1
       other_variant_unit.save!
 
       Spree::InventoryUnit.backordered_for_stock_item(stock_item).should_not include(other_variant_unit)
@@ -80,6 +83,7 @@ describe Spree::InventoryUnit do
         unit.state = 'backordered'
         unit.variant_id = stock_item.variant.id
         unit.order_id = other_order.id
+        unit.quantity = 1
         unit.tap(&:save!)
       end
 
@@ -93,7 +97,7 @@ describe Spree::InventoryUnit do
 
   context "variants deleted" do
     let!(:unit) do
-      Spree::InventoryUnit.create({ variant: stock_item.variant }, :without_protection => true)
+      Spree::InventoryUnit.create!({ variant: stock_item.variant, quantity: 1 }, :without_protection => true)
     end
 
     it "can still fetch variant" do

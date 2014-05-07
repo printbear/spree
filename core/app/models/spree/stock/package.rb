@@ -106,6 +106,7 @@ module Spree
             unit.order = order
             unit.variant = item.variant
             unit.state = item.state.to_s
+            unit.quantity = 1
           end
         end
 

@@ -234,7 +234,7 @@ module Spree
 
     def set_up_inventory(state, variant, order)
       self.inventory_units.create(
-        { variant_id: variant.id, state: state, order_id: order.id },
+        { variant_id: variant.id, state: state, order_id: order.id, quantity: 1 },
         without_protection: true
       )
     end

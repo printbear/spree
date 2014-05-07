@@ -14,6 +14,8 @@ module Spree
         .backordered.order("spree_orders.completed_at ASC")
     end
 
+    validates :quantity, numericality: { greater_than_or_equal_to: 1, only_integer: true }
+
     attr_accessible :shipment, :variant_id
 
     # state machine (see http://github.com/pluginaweek/state_machine/tree/master for details)

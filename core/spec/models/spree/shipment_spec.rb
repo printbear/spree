@@ -485,7 +485,7 @@ describe Spree::Shipment do
     let(:variant) { double("Variant", id: 9) }
     let(:inventory_units) { double }
     let(:params) do
-      { variant_id: variant.id, state: 'on_hand', order_id: order.id }
+      { variant_id: variant.id, state: 'on_hand', order_id: order.id, quantity: 1 }
     end
 
     before { shipment.stub inventory_units: inventory_units }
