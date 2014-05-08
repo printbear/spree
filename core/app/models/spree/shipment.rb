@@ -136,22 +136,6 @@ module Spree
 
     alias_method :display_amount, :display_cost
 
-    def item_cost
-      line_items.map(&:amount).sum
-    end
-
-    def display_item_cost
-      Spree::Money.new(item_cost, { currency: currency })
-    end
-
-    def total_cost
-      cost + item_cost
-    end
-
-    def display_total_cost
-      Spree::Money.new(total_cost, { currency: currency })
-    end
-
     def editable_by?(user)
       !shipped?
     end
@@ -161,14 +145,6 @@ module Spree
         states = {}
         units.group_by(&:state).each { |state, iu| states[state] = iu.count }
         OpenStruct.new(variant: variant, quantity: units.length, states: states)
-      end
-    end
-
-    def line_items
-      if order.complete? and Spree::Config.track_inventory_levels
-        order.line_items.select { |li| !li.should_track_inventory? || inventory_units.pluck(:variant_id).include?(li.variant_id) }
-      else
-        order.line_items
       end
     end
 

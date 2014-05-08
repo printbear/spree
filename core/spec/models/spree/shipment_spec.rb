@@ -58,25 +58,6 @@ describe Spree::Shipment do
     end
   end
 
-  context "display_item_cost" do
-    it "retuns a Spree::Money" do
-      shipment.stub(:item_cost) { 21.22 }
-      shipment.display_item_cost.should == Spree::Money.new(21.22)
-    end
-  end
-
-  context "display_total_cost" do
-    it "retuns a Spree::Money" do
-      shipment.stub(:total_cost) { 21.22 }
-      shipment.display_total_cost.should == Spree::Money.new(21.22)
-    end
-  end
-
-  it "#item_cost" do
-    shipment = create(:shipment, order: create(:order_with_totals))
-    shipment.item_cost.should eql(10.0)
-  end
-
   context "manifest" do
     let(:order) { Spree::Order.create }
     let(:variant) { create(:variant) }
@@ -154,12 +135,6 @@ describe Spree::Shipment do
     end
   end
 
-  it '#total_cost' do
-    shipment.stub cost: 5.0
-    shipment.stub item_cost: 50.0
-    shipment.total_cost.should eql(55.0)
-  end
-
   context "#update!" do
     shared_examples_for "immutable once shipped" do
       it "should remain in shipped state once shipped" do
@@ -227,38 +202,6 @@ describe Spree::Shipment do
       end
     end
   end
-
-  context "when track_inventory is false" do
-    before { Spree::Config.set track_inventory_levels: false }
-    after { Spree::Config.set track_inventory_levels: true }
-
-    it "should not use the line items from order when track_inventory_levels is false" do
-      line_items = [mock_model(Spree::LineItem)]
-      order.stub complete?: true
-      order.stub line_items: line_items
-      shipment.line_items.should == line_items
-    end
-  end
-
-  context "when variant inventory tracking is false" do
-    it "should include line items without inventory if variant inventory tracking is off" do
-      line_items = [mock_model(Spree::LineItem)]
-      line_items.each { |li| li.stub should_track_inventory?: false }
-      order.stub complete?: true
-      order.stub line_items: line_items
-      shipment.line_items.should == line_items
-    end
-
-    it "should not include line items without inventory if variant inventory tracking is on" do
-      line_items = [mock_model(Spree::LineItem)]
-      line_items.each { |li| li.stub should_track_inventory?: true }
-      order.stub complete?: true
-      order.stub line_items: line_items
-      shipment.line_items.should == []
-    end
-  end
-
-
 
   context "when order is completed" do
     after { Spree::Config.set track_inventory_levels: true }
