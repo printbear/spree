@@ -144,7 +144,7 @@ module Spree
       inventory_units.joins(:variant).includes(:variant).group_by(&:variant).map do |variant, units|
         states = {}
         units.group_by(&:state).each { |state, iu| states[state] = iu.count }
-        OpenStruct.new(variant: variant, quantity: units.length, states: states)
+        OpenStruct.new(variant: variant, quantity: units.sum(&:quantity), states: states)
       end
     end
 
