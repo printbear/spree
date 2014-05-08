@@ -197,7 +197,7 @@ module Spree
     end
 
     def to_package
-      counts = inventory_units.group(:variant_id, :state).count
+      counts = inventory_units.group(:variant_id, :state).sum(:quantity)
       variant_ids = counts.map{|(variant_id, _), _| variant_id }.uniq
       variants = Hash[Variant.where(id: variant_ids).map{|v| [v.id, v] }]
 
