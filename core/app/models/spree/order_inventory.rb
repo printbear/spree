@@ -16,10 +16,10 @@ module Spree
     def verify(line_item, shipment = nil)
       if order.completed? || shipment.present?
 
-        variant_units = inventory_units_for(line_item.variant)
+        variant_units = inventory_units_for(line_item.variant).to_a.sum(&:quantity)
 
-        if variant_units.size < line_item.quantity
-          quantity = line_item.quantity - variant_units.size
+        if variant_units < line_item.quantity
+          quantity = line_item.quantity - variant_units
 
           shipment = determine_target_shipment(line_item.variant) unless shipment
           add_to_shipment(shipment, line_item.variant, quantity)
