@@ -289,9 +289,9 @@ describe Spree::Shipment do
     end
 
     it 'unstocks them items' do
-      shipment.stub_chain(:inventory_units, :joins, includes: [mock_model(Spree::InventoryUnit, variant: variant)])
+      shipment.stub_chain(:inventory_units, :joins, includes: [mock_model(Spree::InventoryUnit, variant: variant, quantity: 2)])
       shipment.stock_location = mock_model(Spree::StockLocation)
-      shipment.stock_location.should_receive(:unstock).with(variant, 1, shipment)
+      shipment.stock_location.should_receive(:unstock).with(variant, 2, shipment)
       shipment.after_resume
     end
 

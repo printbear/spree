@@ -90,18 +90,20 @@ module Spree
         shipment = subject.to_shipment
         shipment.order.should == subject.order
         shipment.stock_location.should == subject.stock_location
-        shipment.inventory_units.size.should == 3
+        shipment.inventory_units.size.should == 2
 
         first_unit = shipment.inventory_units.first
         first_unit.variant.should == variant
         first_unit.state.should == 'on_hand'
         first_unit.order.should == subject.order
+        first_unit.quantity.should == 2
         first_unit.should be_pending
 
         last_unit = shipment.inventory_units.last
         last_unit.variant.should == variant
         last_unit.state.should == 'backordered'
         last_unit.order.should == subject.order
+        last_unit.quantity.should == 1
 
         shipment.shipping_method.should eq shipping_method
       end

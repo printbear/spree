@@ -18,13 +18,13 @@ module Spree
 
         variant_units = inventory_units_for(line_item.variant).to_a.sum(&:quantity)
 
-        if variant_units < line_item.quantity
-          quantity = line_item.quantity - variant_units
+        quantity = line_item.quantity - variant_units
 
+        if quantity > 0
           shipment = determine_target_shipment(line_item.variant) unless shipment
           add_to_shipment(shipment, line_item.variant, quantity)
-        elsif variant_units.size > line_item.quantity
-          remove(line_item, variant_units, shipment)
+        elsif quantity < 0
+          remove(line_item, -quantity, shipment)
         end
       else
         true
@@ -37,9 +37,7 @@ module Spree
     end
 
     private
-    def remove(line_item, variant_units, shipment = nil)
-      quantity = variant_units.size - line_item.quantity
-
+    def remove(line_item, quantity, shipment = nil)
       if shipment.present?
         remove_from_shipment(shipment, line_item.variant, quantity)
       else
@@ -93,8 +91,7 @@ module Spree
 
       shipment_units.each do |inventory_unit|
         break if removed_quantity == quantity
-        inventory_unit.destroy
-        removed_quantity += 1
+        removed_quantity += inventory_unit.remove(quantity - removed_quantity)
       end
 
       shipment.destroy if shipment.inventory_units.count == 0
