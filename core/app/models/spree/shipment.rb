@@ -222,11 +222,13 @@ module Spree
       package
     end
 
-    def set_up_inventory(state, variant, order)
-      self.inventory_units.create(
-        { variant_id: variant.id, state: state, order_id: order.id, quantity: 1 },
-        without_protection: true
-      )
+    def set_up_inventory(state, variant, order, quantity)
+      quantity.times do
+        self.inventory_units.create(
+          { variant_id: variant.id, state: state, order_id: order.id, quantity: 1 },
+          without_protection: true
+        )
+      end
     end
 
     private
