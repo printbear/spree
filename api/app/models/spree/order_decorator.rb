@@ -59,6 +59,7 @@ Spree::Order.class_eval do
           unit = shipment.inventory_units.build
           unit.order = self
           unit.variant_id = iu[:variant_id]
+          unit.quantity = 1
         end
 
         shipment.save!

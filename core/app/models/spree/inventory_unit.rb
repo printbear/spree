@@ -16,7 +16,7 @@ module Spree
 
     validates :quantity, numericality: { greater_than_or_equal_to: 1, only_integer: true }
 
-    attr_accessible :shipment, :variant_id
+    attr_accessible :shipment, :variant_id, :quantity
 
     # state machine (see http://github.com/pluginaweek/state_machine/tree/master for details)
     state_machine initial: :on_hand do
