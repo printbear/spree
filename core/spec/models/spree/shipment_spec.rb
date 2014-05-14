@@ -241,7 +241,7 @@ describe Spree::Shipment do
     end
 
     it 'restocks the items' do
-      shipment.stub_chain(:inventory_units, :joins, includes: [mock_model(Spree::InventoryUnit, state: "on_hand", variant: variant)])
+      shipment.stub(manifest: [Spree::Shipment::ManifestItem.new(variant, 1, {"on_hand" => 1})])
       shipment.stock_location = mock_model(Spree::StockLocation)
       shipment.stock_location.should_receive(:restock).with(variant, 1, shipment)
       shipment.after_cancel
@@ -289,7 +289,7 @@ describe Spree::Shipment do
     end
 
     it 'unstocks them items' do
-      shipment.stub_chain(:inventory_units, :joins, includes: [mock_model(Spree::InventoryUnit, variant: variant, quantity: 2)])
+      shipment.stub(manifest: [Spree::Shipment::ManifestItem.new(variant, 2, {"on_hand" => 2})])
       shipment.stock_location = mock_model(Spree::StockLocation)
       shipment.stock_location.should_receive(:unstock).with(variant, 2, shipment)
       shipment.after_resume

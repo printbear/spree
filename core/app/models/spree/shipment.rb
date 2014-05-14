@@ -140,11 +140,27 @@ module Spree
       !shipped?
     end
 
+    ManifestItem = Struct.new(:variant, :quantity, :states)
+
     def manifest
-      inventory_units.joins(:variant).includes(:variant).group_by(&:variant).map do |variant, units|
-        states = {}
-        units.group_by(&:state).each { |state, iu| states[state] = iu.sum(&:quantity) }
-        OpenStruct.new(variant: variant, quantity: units.values.sum, states: states)
+      counts = inventory_units.group(:variant_id, :state).sum(:quantity)
+
+      # Change counts into a hash of {variant_id => {state => quantity}}
+      states = Hash.new{|h,k| h[k] = {} }
+      counts.each do |(variant_id, state), quantity|
+        states[variant_id][state] = quantity
+      end
+
+      # Eager load a hash of {variant_id => variant}
+      variants = Hash[Variant.where(id: counts.keys).map{|v| [v.id, v] }]
+
+      # Use states and eager loaded variants to create ManifestItem
+      states.map do |variant_id, counts|
+        ManifestItem.new(
+          variants[variant_id],
+          counts.values.sum,
+          counts
+        )
       end
     end
 
@@ -197,13 +213,11 @@ module Spree
     end
 
     def to_package
-      counts = inventory_units.group(:variant_id, :state).sum(:quantity)
-      variant_ids = counts.map{|(variant_id, _), _| variant_id }.uniq
-      variants = Hash[Variant.where(id: variant_ids).map{|v| [v.id, v] }]
-
       package = Stock::Package.new(stock_location, order)
-      counts.each do |(variant_id, state), quantity|
-        package.add variants[variant_id], quantity, state.to_sym
+      manifest.each do |item|
+        item.states.each do |state, quantity|
+          package.add item.variant, quantity, state.to_sym
+        end
       end
       package
     end
