@@ -223,12 +223,11 @@ module Spree
     end
 
     def set_up_inventory(state, variant, order, quantity)
-      quantity.times do
-        self.inventory_units.create(
-          { variant_id: variant.id, state: state, order_id: order.id, quantity: 1 },
-          without_protection: true
-        )
-      end
+      return if quantity.zero?
+      self.inventory_units.create(
+        { variant_id: variant.id, state: state, order_id: order.id, quantity: quantity },
+        without_protection: true
+      )
     end
 
     private

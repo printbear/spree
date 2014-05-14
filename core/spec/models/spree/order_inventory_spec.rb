@@ -44,10 +44,9 @@ describe Spree::OrderInventory do
 
       subject.send(:add_to_shipment, shipment, variant, 5).should == 5
 
-      units = shipment.inventory_units.group_by &:variant_id
-      units = units[variant.id].group_by &:state
-      units['backordered'].size.should == 2
-      units['on_hand'].size.should == 3
+      item = shipment.manifest.detect{|i| i.variant == variant }
+      item.states['backordered'].should == 2
+      item.states['on_hand'].should == 3
     end
 
     context "store doesnt track inventory" do
@@ -129,14 +128,17 @@ describe Spree::OrderInventory do
       order.reload
     end
 
+    let(:manifest_item){ order.shipments.first.manifest.detect{|i| i.variant == line_item.variant } }
+
+    # Why do we even test this?
     it 'should be a messed up order' do
-      order.shipments.first.inventory_units_for(line_item.variant).size.should == 3
       line_item.quantity.should == 2
+      manifest_item.quantity.should == 3
     end
 
     it 'should decrease the number of inventory units' do
       subject.verify(line_item)
-      order.reload.shipment.inventory_units_for(line_item.variant).size.should == 2
+      manifest_item.quantity.should == 2
     end
 
     context '#remove_from_shipment' do
