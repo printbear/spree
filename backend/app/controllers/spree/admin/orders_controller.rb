@@ -52,7 +52,7 @@ module Spree
       end
 
       def edit
-        unless @order.complete?
+        unless @order.completed?
           @order.refresh_shipment_rates
         end
       end
@@ -61,7 +61,7 @@ module Spree
         return_path = nil
         if @order.update_attributes(params[:order]) && @order.line_items.present?
           @order.update!
-          unless @order.complete?
+          unless @order.completed?
             # Jump to next step if order is not complete.
             return_path = admin_order_customer_path(@order)
           else
