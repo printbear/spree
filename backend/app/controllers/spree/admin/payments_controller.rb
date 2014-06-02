@@ -18,9 +18,9 @@ module Spree
       end
 
       def create
-        @payment = @order.payments.build(object_params)
-        if @payment.payment_method.is_a?(Spree::Gateway) && @payment.payment_method.payment_profiles_supported? && params[:card].present? and params[:card] != 'new'
-          @payment.source = CreditCard.find_by_id(params[:card])
+        @payment ||= @order.payments.build(object_params)
+        if params[:card].present? && params[:card] != "new"
+          @payment.source = @payment.payment_method.payment_source_class.find_by_id(params[:card])
         end
 
         begin
