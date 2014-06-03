@@ -26,5 +26,10 @@ module Spree
     def shipping_method
       Spree::ShippingMethod.unscoped { super }
     end
+
+    # Friendly text to display as a selection
+    def to_label
+      "#{sr.name} #{sr.display_price}"
+    end
   end
 end
