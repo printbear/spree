@@ -7,6 +7,10 @@ module Spree
     belongs_to :stock_location, class_name: 'Spree::StockLocation'
 
     has_many :shipping_rates, dependent: :delete_all
+    has_one :selected_shipping_rate,
+      class_name: "Spree::ShippingRate",
+      conditions: { selected: true }
+
     has_many :shipping_methods, through: :shipping_rates
     has_many :state_changes, as: :stateful
     has_many :inventory_units, dependent: :delete_all
@@ -83,10 +87,6 @@ module Spree
 
     def add_shipping_method(shipping_method, selected = false)
       shipping_rates.create(shipping_method: shipping_method, selected: selected)
-    end
-
-    def selected_shipping_rate
-      shipping_rates.where(selected: true).first
     end
 
     def selected_shipping_rate_id
