@@ -298,7 +298,7 @@ module Spree
     end
 
     def shipment
-      ActiveSupport::Deprecation.warn("[SPREE] Spree::Order#shipment is typically incorrect due to multiple shipments and will be deprecated in Spree 2.1, please process Spree::Order#shipments instead.")
+      ActiveSupport::Deprecation.warn("[SPREE] Spree::Order#shipment is typically incorrect due to multiple shipments and will be deprecated in Spree 2.1, please process Spree::Order#shipments instead.", caller)
       @shipment ||= shipments.last
     end
 
