@@ -17,9 +17,9 @@ module Spree
             ssl_allowed *actions
             if ssl_supported?
               if actions.empty? or Rails.application.config.force_ssl
-                force_ssl
+                before_filter :force_ssl_redirect
               else
-                force_ssl :only => actions
+                before_filter :force_ssl_redirect, :only => actions
               end
             end
           end
@@ -33,6 +33,19 @@ module Spree
           private
             def ssl_allowed?
               (!ssl_allowed_actions.nil? && (ssl_allowed_actions.empty? || ssl_allowed_actions.include?(action_name.to_sym)))
+            end
+
+            def force_ssl_redirect(host=nil)
+              if !request.ssl?
+                redirect_options = {
+                  :protocol => 'https://',
+                  :host     => host || request.host,
+                  :path     => request.fullpath,
+                }
+                flash.keep if respond_to?(:flash)
+                insecure_url = ActionDispatch::Http::URL.url_for(redirect_options)
+                redirect_to insecure_url, :status => :moved_permanently
+              end
             end
 
             # Redirect the existing request to use the HTTP protocol.
