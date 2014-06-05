@@ -18,38 +18,9 @@ module Spree
           package.stub(:shipping_methods => [shipping_method])
         end
 
-        it "returns shipping rates from a shipping method if the order's ship address is in the same zone" do
+        it "returns shipping rates from a shipping" do
           shipping_rates = subject.shipping_rates(package)
           shipping_rates.first.cost.should eq 4.00
-        end
-
-        it "does not return shipping rates from a shipping method if the order's ship address is in a different zone" do
-          shipping_method.zones.each{|z| z.members.delete_all}
-          shipping_rates = subject.shipping_rates(package)
-          shipping_rates.should == []
-        end
-
-        it "does not return shipping rates from a shipping method if the calculator is not available for that order" do
-          ShippingMethod.any_instance.stub_chain(:calculator, :available?).and_return(false)
-          shipping_rates = subject.shipping_rates(package)
-          shipping_rates.should == []
-        end
-
-        it "returns shipping rates from a shipping method if the currency matches the order's currency" do
-          shipping_rates = subject.shipping_rates(package)
-          shipping_rates.first.cost.should eq 4.00
-        end
-
-        it "does not return shipping rates from a shipping method if the currency is different than the order's currency" do
-          order.currency = "GBP"
-          shipping_rates = subject.shipping_rates(package)
-          shipping_rates.should == []
-        end
-
-        it "does not return shipping rates if the shipping method's calculator raises an exception" do
-          ShippingMethod.any_instance.stub_chain(:calculator, :available?).and_raise(Exception, "Something went wrong!")
-          subject.should_receive(:log_calculator_exception)
-          lambda { subject.shipping_rates(package) }.should_not raise_error
         end
 
         it "sorts shipping rates by cost" do

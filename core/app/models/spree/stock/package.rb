@@ -77,12 +77,16 @@ module Spree
         #TODO calculate from first variant?
       end
 
-      def shipping_categories
-        contents.map { |item| item.variant.shipping_category }.compact.uniq
+      def shipping_category_ids
+        @shipping_category_ids ||= contents.map { |item| item.variant.shipping_category_id }.compact.uniq
       end
 
       def shipping_methods
-        shipping_categories.map { |sc| sc.shipping_methods }.flatten.uniq
+        zones = Zone.matches(order.ship_address)
+        shipping_methods = ShippingMethod.joins(:zones).where(spree_zones: {id: zones}).all
+        shipping_methods.select{|sm| sm.calculator.available?(self) }
+        # Select only those applicable to all contained shipping categories
+        shipping_methods.select{|sm| (shipping_category_ids - sm.shipping_category_ids).empty? }
       end
 
       def inspect

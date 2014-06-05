@@ -74,6 +74,8 @@ module Spree
                     Package::ContentItem.new(variant2, 1),
                     Package::ContentItem.new(variant3, 1)]
 
+        Zone.any_instance.stub(include?: true)
+
         package = Package.new(stock_location, order, contents)
         package.shipping_methods.size.should eq 2
       end
