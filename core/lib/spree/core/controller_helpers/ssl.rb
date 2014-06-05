@@ -43,8 +43,8 @@ module Spree
                   :path     => request.fullpath,
                 }
                 flash.keep if respond_to?(:flash)
-                insecure_url = ActionDispatch::Http::URL.url_for(redirect_options)
-                redirect_to insecure_url, :status => :moved_permanently
+                secure_url = ActionDispatch::Http::URL.url_for(redirect_options)
+                redirect_to secure_url, :status => :moved_permanently
               end
             end
 
