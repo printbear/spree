@@ -85,8 +85,6 @@ module Spree
         zones = Zone.matches(order.ship_address)
         shipping_methods = ShippingMethod.joins(:zones).where(spree_zones: {id: zones}).all
         shipping_methods.select{|sm| sm.calculator.available?(self) }
-        # Select only those applicable to all contained shipping categories
-        shipping_methods.select{|sm| (shipping_category_ids - sm.shipping_category_ids).empty? }
       end
 
       def inspect
