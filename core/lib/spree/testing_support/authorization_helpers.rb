@@ -4,7 +4,7 @@ module Spree
       module Controller
         def stub_authorization!
           before do
-            controller.stub :authorize! => true
+            allow(controller).to receive(:authorize!).and_return(true)
           end
         end
       end
