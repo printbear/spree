@@ -24,7 +24,7 @@ module Spree
         shipments.each { |shipment| shipment.update!(order) }
         update_shipment_state
       end
-      
+
       update_adjustments
       # update totals a second time in case updated adjustments have an effect on the total
       update_totals
