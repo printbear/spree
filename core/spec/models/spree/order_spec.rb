@@ -230,7 +230,7 @@ describe Spree::Order do
       expect(order_changes.first.next_state).to eq('complete')
       payment_changes = order.state_changes.where(:name => "payment")
       expect(payment_changes.first.previous_state).to be_nil
-      expect(payment_changes.first.next_state).to eq('balance_due')
+      expect(payment_changes.first.next_state).to eq('paid')
     end
   end
 
