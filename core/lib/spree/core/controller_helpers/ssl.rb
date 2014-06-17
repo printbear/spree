@@ -36,7 +36,7 @@ module Spree
             end
 
             def force_ssl_redirect(host=nil)
-              if !request.ssl?
+              if !request.ssl? && request.get?
                 redirect_options = {
                   :protocol => 'https://',
                   :host     => host || request.host,
