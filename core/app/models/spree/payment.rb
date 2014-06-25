@@ -119,6 +119,10 @@ module Spree
       res || payment_method
     end
 
+    def payment_method
+      PaymentMethod.unscoped{ super }
+    end
+
     private
 
       def validate_source
