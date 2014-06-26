@@ -83,22 +83,17 @@ describe Spree::Payment do
   end
 
   context "processing" do
-    before do
-      payment.stub(:update_order)
-      payment.stub(:create_payment_profile)
-    end
-
     describe "#process!" do
       it "should purchase if with auto_capture" do
         payment.payment_method.should_receive(:auto_capture?).and_return(true)
-        payment.should_receive(:purchase!)
         payment.process!
+        expect(payment).to be_completed
       end
 
       it "should authorize without auto_capture" do
         payment.payment_method.should_receive(:auto_capture?).and_return(false)
-        payment.should_receive(:authorize!)
         payment.process!
+        expect(payment).to be_pending
       end
 
       it "should make the state 'processing'" do
@@ -111,7 +106,6 @@ describe Spree::Payment do
         expect { payment.process!}.to raise_error(Spree::Core::GatewayError)
         payment.state.should eq('invalid')
       end
-
     end
 
     describe "#authorize!" do
@@ -452,8 +446,6 @@ describe Spree::Payment do
     it "should return nil without trying to process the source" do
       payment.state = 'processing'
 
-      payment.should_not_receive(:authorize!)
-      payment.should_not_receive(:purchase!)
       payment.process!.should be_nil
     end
   end

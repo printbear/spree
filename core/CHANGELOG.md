@@ -15,3 +15,11 @@
 *   Ensure transition to payment processing state happens outside transaction.
 
     Chris Salzberg
+
+*   Refactor authorize! and purchase! on payments.
+
+    Richard Wilson
+
+*   Add authorize_payments! and capture_payments! to the public interface of orders.
+
+    Richard Wilson
