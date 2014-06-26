@@ -2,10 +2,12 @@ module Spree
   class Payment < ActiveRecord::Base
     module Processing
       def process!
-        if payment_method.auto_capture?
-          purchase!
-        else
-          authorize!
+        handle_payment_preconditions do
+          if payment_method.auto_capture?
+            purchase!
+          else
+            authorize!
+          end
         end
       end
 
@@ -134,6 +136,7 @@ module Spree
 
       private
 
+<<<<<<< HEAD
       def process_authorization
         started_processing!
         gateway_action(source, :authorize, :pend)
@@ -146,6 +149,8 @@ module Spree
         capture_events.create!(amount: amount)
       end
 
+=======
+>>>>>>> Encapsulate handling of payment preconditions
       def handle_payment_preconditions(&block)
         unless block_given?
           raise ArgumentError("handle_payment_preconditions must be called with a block")
