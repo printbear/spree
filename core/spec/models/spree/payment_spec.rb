@@ -127,7 +127,6 @@ describe Spree::Payment do
         expect { payment.process!}.to raise_error(Spree::Core::GatewayError)
         payment.state.should eq('invalid')
       end
-      
       # Regression test for #4598
       it "should allow payments with a gateway_customer_profile_id" do
         payment.source.stub :gateway_customer_profile_id => "customer_1"
