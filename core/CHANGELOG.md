@@ -15,3 +15,7 @@
 *   Ensure transition to payment processing state happens outside transaction.
 
     Chris Salzberg
+
+*   Refactor authorize! and purchase! on payments.
+
+    Richard Wilson
