@@ -19,3 +19,7 @@
 *   Refactor authorize! and purchase! on payments.
 
     Richard Wilson
+
+*   Add authorize_payments! and capture_payments! to the public interface of orders.
+
+    Richard Wilson
