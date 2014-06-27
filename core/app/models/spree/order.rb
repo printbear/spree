@@ -185,7 +185,7 @@ module Spree
 
     # Is this a free order in which case the payment step should be skipped
     def payment_required?
-      total.to_f > 0.0
+      total.to_f > 0.0 && !paid?
     end
 
     # If true, causes the confirmation step to happen during the checkout process
