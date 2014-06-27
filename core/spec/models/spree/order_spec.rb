@@ -623,14 +623,23 @@ describe Spree::Order do
 
   context "payment required?" do
     let(:order) { Spree::Order.new }
+    subject { order.payment_required? }
 
     context "total is zero" do
-      it { order.payment_required?.should be_false }
+      it { should be_false }
     end
 
     context "total > zero" do
       before { order.stub(total: 1) }
-      it { order.payment_required?.should be_true }
+      it { should be_true }
+    end
+
+    context "order is paid" do
+      before do
+        order.total = 1
+        order.payment_state = "paid"
+      end
+      it { should be_false }
     end
   end
 
