@@ -50,5 +50,42 @@ module Spree
 
       order.process_payments!
     end
+
+    context "#authorize_payments!" do
+      let(:payment) { stub_model(Spree::Payment) }
+      before { order.stub :pending_payments => [payment], :total => 10 }
+      subject { order.authorize_payments! }
+
+      it "processes payments with authorize!" do
+        expect(payment).to receive(:authorize!)
+        subject
+      end
+
+      it { should be_true }
+    end
+
+    context "#purchase_payments!" do
+      let(:payment) { stub_model(Spree::Payment) }
+      before { order.stub :pending_payments => [payment], :total => 10 }
+      subject { order.purchase_payments! }
+
+      it "processes payments with purchase!" do
+        expect(payment).to receive(:purchase!)
+        subject
+      end
+
+      it { should be_true }
+    end
+
+    context "#capture_payments!" do
+      let(:payment) { stub_model(Spree::Payment) }
+      before { order.stub :pending_payments => [payment], :total => 10 }
+      subject { order.capture_payments! }
+
+      it "processes payments with capture!" do
+        expect(payment).to receive(:capture!)
+        subject
+      end
+    end
   end
 end
