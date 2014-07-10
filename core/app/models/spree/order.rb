@@ -389,8 +389,12 @@ module Spree
       process_payments_with(:authorize!)
     end
 
-    def capture_payments!
+    def purchase_payments!
       process_payments_with(:purchase!)
+    end
+
+    def capture_payments!
+      process_payments_with(:capture!)
     end
 
     def billing_firstname
