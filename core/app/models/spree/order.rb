@@ -50,6 +50,7 @@ module Spree
     has_many :inventory_units, inverse_of: :order
     has_many :products, through: :variants
     has_many :variants, through: :line_items
+    has_many :review_comments
 
     has_and_belongs_to_many :promotions, join_table: 'spree_orders_promotions'
 
