@@ -1,0 +1,19 @@
+<% ["cancel", "resume", "approve"].each do |action| %>
+  <% if order.public_send("can_#{action}?") %>
+    <%= content_tag :div, id: "#{action}-overlay", class: "review-overlay", data: { action: action } do %>
+      <div class='modal-content'>
+        <%= form_for order, url: public_send("#{action}_admin_order_path", order), method: :put do |form| %>
+          <p>
+            <%= Spree.t(:reasons_required, action: Spree.t(action).downcase) %>
+          </p>
+          <div class='modal-fields'>
+            <%= text_area_tag :comment %>
+          </div>
+          <div class='modal-actions'>
+            <%= form.submit value: Spree.t("#{action}_order") %>
+            <%= link_to Spree.t(:close_dialog), "#", class: "button close-modal" %>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

@@ -50,6 +50,10 @@
       </div>
     </div>
 
+    <% if content_for?(:footer) %>
+      <%= yield(:footer) %>
+    <% end %>
+
     <div data-hook="admin_footer_scripts"></div>
 
     <script>

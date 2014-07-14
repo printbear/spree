@@ -37,3 +37,7 @@
 <% content_for :head do %>
   <%= javascript_tag 'var expand_variants = true;' %>
 <% end %>
+
+<% content_for :footer do %>
+  <%= render "review_modals", order: @order %>
+<% end %>
