@@ -379,8 +379,10 @@ en:
     analytics_trackers: Analytics Trackers
     and: and
     approve: approve
+    approving: approving
     approver: Approver
     approved_at: Approved at
+    approve_order: approve order
     are_you_sure: Are you sure?
     are_you_sure_delete: Are you sure you want to delete this record?
     associated_adjustment_closed: The associated adjustment is closed, and will not be recalculated. Do you want to open it?
@@ -427,6 +429,8 @@ en:
     calculator: Calculator
     calculator_settings_warning: If you are changing the calculator type, you must save first before you can edit the calculator settings
     cancel: cancel
+    cancel_order: cancel order
+    cancelling: cancelling
     cannot_create_payment_without_payment_methods: You cannot create a payment for an order without any payment methods defined.
     cannot_create_returns: Cannot create returns as this order has no shipped units.
     cannot_perform_operation: Cannot perform requested operation
@@ -454,6 +458,7 @@ en:
     click_and_drag_on_the_products_to_sort_them: 'Click &amp; drag on the products to sort them.'
     clone: Clone
     close: Close
+    close_dialog: close dialog
     close_all_adjustments: Close All Adjustments
     code: Code
     company: Company
@@ -962,6 +967,7 @@ en:
     quantity_shipped: Quantity Shipped
     rate: Rate
     reason: Reason
+    reasons_required: Please enter a comment to %{action} this order.
     receive: receive
     receive_stock: Receive Stock
     received: Received
@@ -977,6 +983,7 @@ en:
     reset_password: Reset my password
     response_code: Response Code
     resume: resume
+    resume_order: resume order
     resumed: Resumed
     return: return
     return_authorization: Return Authorization
