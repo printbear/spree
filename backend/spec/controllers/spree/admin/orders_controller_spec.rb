@@ -12,7 +12,6 @@ class OrderSpecificAbility
 end
 
 describe Spree::Admin::OrdersController do
-
   context "with authorization" do
     stub_authorization!
 
@@ -25,53 +24,63 @@ describe Spree::Admin::OrdersController do
       end
     end
 
-    let(:order) { mock_model(Spree::Order, :complete? => true, :total => 100, :number => 'R123456789') }
+    let(:order) { mock_model(Spree::Order, :complete? => true, :total => 100, :number => 'R123456789', :id => 10) }
     before { Spree::Order.stub :find_by_number! => order }
 
     context "#approve" do
-      subject { spree_put :approve, id: order.number }
+      subject { spree_put :approve, id: order.number, comment: "hello" }
 
       before do
-        allow(order).to receive(:next).and_return(true)
         allow(order).to receive(:approved_by).and_return(true)
       end
 
-      context "when approving an order succeeds" do
-        before { allow(order).to receive(:approved?).and_return(true) }
+      context "when transitioning to the next state succeeds" do
+        before do
+          allow(order).to receive(:next).and_return(true)
+        end
+
         it "responds appropriately" do
           subject
           expect(flash[:success]).to eq "Order approved"
         end
 
-        it "tries to move the order forward" do
-          expect(order).to receive(:next)
-          subject
-        end
-      end
-
-      context "when approving an order doesn't succeed" do
-        before { allow(order).to receive(:approved?).and_return(false) }
-
-        it "responds appropriately" do
-          subject
-          expect(flash[:alert]).to eq "Order could not be approved at this time"
+        it "creates a review comment" do
+          expect{subject}.to change{Spree::ReviewComment.count}.by(1)
         end
       end
     end
 
     context "#cancel" do
-      it "cancels an order" do
+      subject { spree_put :cancel, id: order.number, comment: "some comment" }
+
+      before do
         expect(order).to receive(:cancel!)
-        spree_put :cancel, id: order.number
+      end
+
+      it "cancels an order" do
+        subject
         expect(flash[:success]).to eq Spree.t(:order_canceled)
+      end
+
+      it "creates a review comment" do
+        expect{subject}.to change{Spree::ReviewComment.count}.by(1)
       end
     end
 
     context "#resume" do
-      it "resumes an order" do
+      subject { spree_put :resume, id: order.number, comment: "hello" }
+
+      before do
         expect(order).to receive(:resume!)
-        spree_put :resume, id: order.number
+      end
+
+      it "resumes an order" do
+        subject
         expect(flash[:success]).to eq Spree.t(:order_resumed)
+      end
+
+      it "creates a review comment" do
+        expect{subject}.to change{Spree::ReviewComment.count}.by(1)
       end
     end
 
