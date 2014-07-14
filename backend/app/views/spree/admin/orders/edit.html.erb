@@ -34,6 +34,38 @@
   </div>
 </div>
 
+<div data-hook="admin_order_review_commnets">
+  <% if @order.review_comments.any? %>
+    <fieldset class="no-border-bottom">
+      <legend align="center"><%= Spree.t(:review_comments) %></legend>
+      <table class="review-comments">
+        <colgroup>
+          <col style="width:20%">
+          <col style="width:15%">
+          <col style="width:15%">
+          <col style="width:50%">
+        </colgroup>
+        <thead>
+          <th><%= Spree.t(:user) %></th>
+          <th><%= Spree.t(:from_state) %></th>
+          <th><%= Spree.t(:to_state) %></th>
+          <th><%= Spree.t(:comment) %></th>
+        </thead>
+        <tbody>
+          <% @order.review_comments.each do |comment| %>
+            <tr>
+              <td><%= comment.user.email %></td>
+              <td><%= comment.previous_state %></td>
+              <td><%= comment.new_state %></td>
+              <td><%= comment.comment %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </fieldset>
+  <% end %>
+</div>
+
 <% content_for :head do %>
   <%= javascript_tag 'var expand_variants = true;' %>
 <% end %>
