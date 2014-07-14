@@ -75,21 +75,27 @@ module Spree
       end
 
       def cancel
+        state = @order.state
         @order.cancel!
+        create_review_comment(state)
         flash[:success] = Spree.t(:order_canceled)
         redirect_to :back
       end
 
       def resume
+        state = @order.state
         @order.resume!
+        create_review_comment(state)
         flash[:success] = Spree.t(:order_resumed)
         redirect_to :back
       end
 
       def approve
+        previous_state = @order.state
         @order.approved_by(try_spree_current_user)
-        if @order.approved?
-          @order.next
+
+        if @order.next
+          create_review_comment(previous_state)
           flash[:success] = Spree.t(:order_approved)
         else
           flash[:alert] = Spree.t(:order_not_approved)
@@ -133,6 +139,16 @@ module Spree
 
         def model_class
           Spree::Order
+        end
+
+        def create_review_comment(previous_state)
+          Spree::ReviewComment.create({
+            comment: params[:comment],
+            order: @order,
+            user: try_spree_current_user,
+            previous_state: previous_state,
+            new_state: @order.state
+          })
         end
     end
   end
