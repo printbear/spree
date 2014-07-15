@@ -144,6 +144,15 @@ table {
         }
       }
 
+      &.ineligible td {
+        text-decoration: line-through;
+        background-color: very-light($color-error, 6);
+
+        &.actions, span[class^="icon-"], span[class*=" icon-"] {
+          text-decoration: none;
+        }
+      }
+
       &:hover td {
         background-color: very-light($color-3, 5);
 

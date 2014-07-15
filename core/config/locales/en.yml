@@ -559,6 +559,7 @@ en:
     fill_in_customer_info: Please fill in customer info
     filter_results: Filter Results
     finalize: Finalize
+    finalized: Finalized
     first_item: First Item Cost
     first_name: First Name
     first_name_begins_with: First Name Begins With

@@ -23,7 +23,7 @@ module Spree
       end
 
       def collection
-        parent.adjustments.eligible
+        parent.adjustments
       end
     end
   end
