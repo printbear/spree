@@ -327,6 +327,10 @@ module Spree
       adjustments.tax.map(&:amount).sum
     end
 
+    def authorized_payment_total
+      payments.pending_authorized_or_captured.sum(&:amount)
+    end
+
     # Clear shipment when transitioning to delivery step of checkout if the
     # current shipping address is not eligible for the existing shipping method
     def remove_invalid_shipments!

@@ -32,6 +32,9 @@ module Spree
     scope :pending, with_state('pending')
     scope :failed, with_state('failed')
     scope :valid, where("#{quoted_table_name}.state NOT IN (?)", %w(failed invalid))
+    scope :pending_authorized_or_captured, -> {
+      where(state: %w[pending processing completed])
+    }
 
     after_rollback :persist_invalid
 
