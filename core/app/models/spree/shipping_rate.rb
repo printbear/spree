@@ -29,7 +29,7 @@ module Spree
 
     # Friendly text to display as a selection
     def to_label
-      "#{sr.name} #{sr.display_price}"
+      "#{name} #{display_price}"
     end
   end
 end
