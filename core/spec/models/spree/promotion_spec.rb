@@ -236,22 +236,44 @@ describe Spree::Promotion do
   end
 
   context "#eligible?" do
-    before do
-      @order = create(:order)
-      promotion.name = "Foo"
-      calculator = Spree::Calculator::FlatRate.new
-      action_params = { :promotion => promotion, :calculator => calculator }
-      @action = Spree::Promotion::Actions::CreateAdjustment.create(action_params)
+    let(:promotable) { create :order }
+    subject { promotion.eligible?(promotable) }
+    context "when promotion is expired" do
+      before { promotion.expires_at = Time.now - 10.days }
+      it { should be false }
     end
-
-    context "when it is expired" do
-      before { promotion.stub(:expired? => true) }
-      specify { promotion.should_not be_eligible(@order) }
+    context "when promotable is a Spree::LineItem" do
+      let(:promotable) { create :line_item }
+      let(:product) { promotable.product }
+      before do
+        product.promotionable = promotionable
+      end
+      context "and product is promotionable" do
+        let(:promotionable) { true }
+        it { should be true }
+      end
+      context "and product is not promotionable" do
+        let(:promotionable) { false }
+        it { should be false }
+      end
     end
-
-    context "when it is not expired" do
-      before { promotion.expires_at = Time.now + 1.day }
-      specify { promotion.should be_eligible(@order) }
+    context "when promotable is a Spree::Order" do
+      let(:promotable) { create :order }
+      context "and it is empty" do
+        it { should be true }
+      end
+      context "and it contains items" do
+        let!(:line_item) { create(:line_item, order: promotable) }
+        context "and the items are all non-promotionable" do
+          before do
+            line_item.product.update_column(:promotionable, false)
+          end
+          it { should be false }
+        end
+        context "and at least one item is promotionable" do
+          it { should be true }
+        end
+      end
     end
   end
 
@@ -317,42 +339,6 @@ describe Spree::Promotion do
       it "finds the code with lowercase" do
         expect(Spree::Promotion.with_coupon_code("my-coupon-123")).to eql promotion
       end
-    end
-  end
-
-  describe '#used_by?' do
-    subject { promotion.used_by? user, [excluded_order] }
-
-    let(:promotion) { Spree::Promotion.create! name: 'Test Used By' }
-    let(:user) { double Spree::LegacyUser, id: 2 }
-    let(:order) { create :completed_order_with_totals }
-    let(:excluded_order) { double Spree::Order, id: 3}
-
-    before { promotion.orders << order }
-
-    context 'when the user has used this promo' do
-      before do
-        order.user_id = user.id
-        order.save!
-      end
-
-      context 'when the order is complete' do
-        it { should be true }
-
-        context 'when the only matching order is the excluded order' do
-          let(:excluded_order) { order }
-          it { should be false }
-        end
-      end
-
-      context 'when the order is not complete' do
-        let(:order) { create :order }
-        it { should be false }
-      end
-    end
-
-    context 'when the user nas not used this promo' do
-      it { should be false }
     end
   end
 
