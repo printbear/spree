@@ -319,4 +319,64 @@ describe Spree::Promotion do
       end
     end
   end
+
+  describe '#used_by?' do
+    subject { promotion.used_by? user, [excluded_order] }
+
+    let(:promotion) { Spree::Promotion.create! name: 'Test Used By' }
+    let(:user) { double Spree::LegacyUser, id: 2 }
+    let(:order) { create :completed_order_with_totals }
+    let(:excluded_order) { double Spree::Order, id: 3}
+
+    before { promotion.orders << order }
+
+    context 'when the user has used this promo' do
+      before do
+        order.user_id = user.id
+        order.save!
+      end
+
+      context 'when the order is complete' do
+        it { should be true }
+
+        context 'when the only matching order is the excluded order' do
+          let(:excluded_order) { order }
+          it { should be false }
+        end
+      end
+
+      context 'when the order is not complete' do
+        let(:order) { create :order }
+        it { should be false }
+      end
+    end
+
+    context 'when the user nas not used this promo' do
+      it { should be false }
+    end
+  end
+
+  describe "adding items to the cart" do
+    let(:order) { create :order }
+    let(:line_item) { create :line_item, order: order }
+    let(:promo) { create :promotion_with_item_adjustment, adjustment_rate: 5, code: 'promo' }
+    let(:variant) { create :variant }
+
+    it "updates the promotions for new line items" do
+      expect(line_item.adjustments).to be_empty
+      expect(order.adjustment_total).to eq 0
+
+      promo.activate order: order
+      order.update!
+
+      expect(line_item.adjustments).to have(1).item
+      expect(order.adjustment_total).to eq -5
+
+      other_line_item = order.contents.add(variant, 1, order.currency)
+
+      expect(other_line_item).not_to eq line_item
+      expect(other_line_item.adjustments).to have(1).item
+      expect(order.adjustment_total).to eq -10
+    end
+  end
 end
