@@ -236,22 +236,44 @@ describe Spree::Promotion do
   end
 
   context "#eligible?" do
-    before do
-      @order = create(:order)
-      promotion.name = "Foo"
-      calculator = Spree::Calculator::FlatRate.new
-      action_params = { :promotion => promotion, :calculator => calculator }
-      @action = Spree::Promotion::Actions::CreateAdjustment.create(action_params)
+    let(:promotable) { create :order }
+    subject { promotion.eligible?(promotable) }
+    context "when promotion is expired" do
+      before { promotion.expires_at = Time.now - 10.days }
+      it { should be false }
     end
-
-    context "when it is expired" do
-      before { promotion.stub(:expired? => true) }
-      specify { promotion.should_not be_eligible(@order) }
+    context "when promotable is a Spree::LineItem" do
+      let(:promotable) { create :line_item }
+      let(:product) { promotable.product }
+      before do
+        product.promotionable = promotionable
+      end
+      context "and product is promotionable" do
+        let(:promotionable) { true }
+        it { should be true }
+      end
+      context "and product is not promotionable" do
+        let(:promotionable) { false }
+        it { should be false }
+      end
     end
-
-    context "when it is not expired" do
-      before { promotion.expires_at = Time.now + 1.day }
-      specify { promotion.should be_eligible(@order) }
+    context "when promotable is a Spree::Order" do
+      let(:promotable) { create :order }
+      context "and it is empty" do
+        it { should be true }
+      end
+      context "and it contains items" do
+        let!(:line_item) { create(:line_item, order: promotable) }
+        context "and the items are all non-promotionable" do
+          before do
+            line_item.product.update_column(:promotionable, false)
+          end
+          it { should be false }
+        end
+        context "and at least one item is promotionable" do
+          it { should be true }
+        end
+      end
     end
   end
 
@@ -317,6 +339,30 @@ describe Spree::Promotion do
       it "finds the code with lowercase" do
         expect(Spree::Promotion.with_coupon_code("my-coupon-123")).to eql promotion
       end
+    end
+  end
+
+  describe "adding items to the cart" do
+    let(:order) { create :order }
+    let(:line_item) { create :line_item, order: order }
+    let(:promo) { create :promotion_with_item_adjustment, adjustment_rate: 5, code: 'promo' }
+    let(:variant) { create :variant }
+
+    it "updates the promotions for new line items" do
+      expect(line_item.adjustments).to be_empty
+      expect(order.adjustment_total).to eq 0
+
+      promo.activate order: order
+      order.update!
+
+      expect(line_item.adjustments).to have(1).item
+      expect(order.adjustment_total).to eq -5
+
+      other_line_item = order.contents.add(variant, 1, order.currency)
+
+      expect(other_line_item).not_to eq line_item
+      expect(other_line_item.adjustments).to have(1).item
+      expect(order.adjustment_total).to eq -10
     end
   end
 end
