@@ -318,52 +318,40 @@ module Spree
     end
 
     def transfer_to_location(variant, quantity, stock_location)
-      success = true
-      message = Spree.t(:shipment_transfer_success)
-      if (quantity <= 0 || !enough_stock_at_destination_location(variant, quantity, stock_location))
-        return [false, Spree.t(:shipment_transfer_error)]
+      if quantity <= 0
+        raise ArgumentError
       end
 
-      begin
-        transaction do
-          self.order.contents.remove(variant, quantity, self)
-          new_shipment = self.order.shipments.create!(stock_location: stock_location)
-          self.order.contents.add(variant, quantity, nil, new_shipment)
-        end
-      rescue Exception => e
-        Rails.logger.error e.message
-        message  = Spree.t(:shipment_transfer_error)
-        success = false
-      end
+      transaction do
+        new_shipment = order.shipments.create!(stock_location: stock_location)
 
-      [success, message]
+        order.contents.remove(variant, quantity, self)
+        order.contents.add(variant, quantity, order.currency, new_shipment)
+
+        refresh_rates
+        save!
+        new_shipment.refresh_rates
+        new_shipment.save!
+      end
     end
 
     def transfer_to_shipment(variant, quantity, shipment_to_transfer_to)
-      success = true
-      message = Spree.t(:shipment_transfer_success)
-
       quantity_already_shipment_to_transfer_to = shipment_to_transfer_to.manifest.find{|mi| mi.line_item.variant == variant}.try(:quantity) || 0
       final_quantity = quantity + quantity_already_shipment_to_transfer_to
 
-      if (quantity <= 0 || self.id == shipment_to_transfer_to.id || !enough_stock_at_destination_location(variant, final_quantity, shipment_to_transfer_to.stock_location))
-        return [false, Spree.t(:shipment_transfer_error)]
+      if (quantity <= 0 || self == shipment_to_transfer_to)
+        raise ArgumentError
       end
 
-      begin
-        transaction do
-          self.order.contents.remove(variant, quantity, self)
-          shipment_to_transfer_to.order.contents.add(variant, quantity, nil, shipment_to_transfer_to)
-          shipment_to_transfer_to.refresh_rates
-          shipment_to_transfer_to.save!
-        end
-      rescue Exception => e
-        Rails.logger.error e.message
-        message  = Spree.t(:shipment_transfer_error)
-        success = false
-      end
+      transaction do
+        order.contents.remove(variant, quantity, self)
+        order.contents.add(variant, quantity, order.currency, shipment_to_transfer_to)
 
-      [success, message]
+        refresh_rates
+        save!
+        shipment_to_transfer_to.refresh_rates
+        shipment_to_transfer_to.save!
+      end
     end
 
     private
