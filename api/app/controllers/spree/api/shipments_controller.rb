@@ -63,15 +63,13 @@ module Spree
       end
 
       def transfer_to_location
-        success, message = @original_shipment.transfer_to_location(@variant, @quantity, @stock_location)
-        status = success ? 201 : 422
-        render json: {success: success, message: message}, status: status
+        @original_shipment.transfer_to_location(@variant, @quantity, @stock_location)
+        render json: {success: true, message: Spree.t(:shipment_transfer_success)}, status: 201
       end
 
       def transfer_to_shipment
-        success, message = @original_shipment.transfer_to_shipment(@variant, @quantity, @target_shipment)
-        status = success ? 201 : 422
-        render json: {success: success, message: message}, status: status
+        @original_shipment.transfer_to_shipment(@variant, @quantity, @target_shipment)
+        render json: {success: true, message: Spree.t(:shipment_transfer_success)}, status: 201
       end
 
       private
