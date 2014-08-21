@@ -33,5 +33,4 @@ Spree::Core::Engine.add_routes do
   get '/content/cvv', :to => 'content#cvv', :as => :cvv
   get '/content/*path', :to => 'content#show', :as => :content
   get '/cart_link', :to => 'store#cart_link', :as => :cart_link
-  get '/*id', :to => 'taxons#show', :as => :nested_taxons
 end
