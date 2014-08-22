@@ -350,19 +350,19 @@ module Spree
       after_ship if new_state == 'shipped' and old_state != 'shipped'
     end
 
-    class ShipmentTransferError < StandardError
-    end
-
     def transfer_to_location(variant, quantity, stock_location)
-      if (quantity <= 0 || !enough_stock_at_destination_location(variant, quantity, stock_location))
-        raise ShipmentTransferError
+      if quantity <= 0
+        raise ArgumentError
       end
 
       transaction do
-        self.order.contents.remove(variant, quantity, {shipment: self})
-        new_shipment = self.order.shipments.create!(stock_location: stock_location)
-        self.order.contents.add(variant, quantity, {shipment: new_shipment})
+        new_shipment = order.shipments.create!(stock_location: stock_location)
 
+        order.contents.remove(variant, quantity, {shipment: self})
+        order.contents.add(variant, quantity, {shipment: new_shipment})
+
+        refresh_rates
+        save!
         new_shipment.refresh_rates
         new_shipment.save!
       end
@@ -372,25 +372,22 @@ module Spree
       quantity_already_shipment_to_transfer_to = shipment_to_transfer_to.manifest.find{|mi| mi.line_item.variant == variant}.try(:quantity) || 0
       final_quantity = quantity + quantity_already_shipment_to_transfer_to
 
-      if (quantity <= 0 || self.id == shipment_to_transfer_to.id || !enough_stock_at_destination_location(variant, final_quantity, shipment_to_transfer_to.stock_location))
-        raise ShipmentTransferError
+      if (quantity <= 0 || self == shipment_to_transfer_to)
+        raise ArgumentError
       end
 
       transaction do
-        self.order.contents.remove(variant, quantity, {shipment: self})
-        shipment_to_transfer_to.order.contents.add(variant, quantity, {shipment: shipment_to_transfer_to})
+        order.contents.remove(variant, quantity, {shipment: self})
+        order.contents.add(variant, quantity, {shipment: shipment_to_transfer_to})
+
+        refresh_rates
+        save!
         shipment_to_transfer_to.refresh_rates
         shipment_to_transfer_to.save!
       end
     end
 
     private
-
-      def enough_stock_at_destination_location(variant, quantity, stock_location)
-        stock_item = Spree::StockItem.where(variant: variant).
-                                      where(stock_location: stock_location).first
-        (stock_item.count_on_hand >= quantity || stock_item.backorderable)
-      end
 
       def after_ship
         ShipmentHandler.factory(self).perform
