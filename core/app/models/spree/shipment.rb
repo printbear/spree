@@ -351,20 +351,9 @@ module Spree
     end
 
     def transfer_to_location(variant, quantity, stock_location)
-      if quantity <= 0
-        raise ArgumentError
-      end
-
       transaction do
         new_shipment = order.shipments.create!(stock_location: stock_location)
-
-        order.contents.remove(variant, quantity, {shipment: self})
-        order.contents.add(variant, quantity, {shipment: new_shipment})
-
-        refresh_rates
-        save!
-        new_shipment.refresh_rates
-        new_shipment.save!
+        transfer_to_shipment(variant, quantity, stock_location)
       end
     end
 
