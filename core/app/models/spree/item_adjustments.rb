@@ -2,7 +2,7 @@ module Spree
   # Manage (recalculate) item (LineItem or Shipment) adjustments
   class ItemAdjustments
     include ActiveSupport::Callbacks
-    define_callbacks :promo_adjustments, :tax_adjustments
+    define_callbacks :promo_adjustments, :tax_adjustments, :general_adjustments
     attr_reader :item
 
     delegate :adjustments, :order, to: :item
@@ -47,16 +47,21 @@ module Spree
       included_tax_total = 0
       additional_tax_total = 0
       run_callbacks :tax_adjustments do
-        tax = (item.respond_to?(:all_adjustments) ? item.all_adjustments : item.adjustments).tax
+        tax = base_scope.tax
         included_tax_total = tax.included.reload.map(&:update!).compact.sum
         additional_tax_total = tax.additional.reload.map(&:update!).compact.sum
+      end
+
+      general_adjustment_total = 0
+      run_callbacks :general_adjustments do
+        general_adjustment_total = base_scope.general.map(&:update!).compact.sum
       end
 
       item.update_columns(
         :promo_total => promo_total,
         :included_tax_total => included_tax_total,
         :additional_tax_total => additional_tax_total,
-        :adjustment_total => promo_total + additional_tax_total,
+        :adjustment_total => promo_total + additional_tax_total + general_adjustment_total,
         :updated_at => Time.now,
       )
     end
@@ -73,6 +78,10 @@ module Spree
 
     def best_promotion_adjustment
       @best_promotion_adjustment ||= adjustments.promotion.eligible.reorder("amount ASC, created_at DESC").first
+    end
+
+    def base_scope
+      item.respond_to?(:all_adjustments) ? item.all_adjustments : item.adjustments
     end
   end
 end

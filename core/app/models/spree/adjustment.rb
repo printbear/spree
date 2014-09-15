@@ -22,6 +22,8 @@
 # it might be reinstated.
 module Spree
   class Adjustment < Spree::Base
+    NON_GENERIC_SOURCES = ["Spree::PromotionAction", "Spree::TaxRate"]
+
     belongs_to :adjustable, polymorphic: true
     belongs_to :source, polymorphic: true
     belongs_to :order, class_name: "Spree::Order"
@@ -56,6 +58,10 @@ module Spree
     scope :return_authorization, -> { where(source_type: "Spree::ReturnAuthorization") }
     scope :included, -> { where(included: true)  }
     scope :additional, -> { where(included: false) }
+
+    scope :general, -> do
+      where("source_type NOT IN (?) OR source_type IS NULL", Spree::Adjustment::NON_GENERIC_SOURCES)
+    end
 
     def closed?
       state == "closed"
@@ -104,6 +110,5 @@ module Spree
       # Cause adjustable's total to be recalculated
       Spree::ItemAdjustments.new(adjustable).update if adjustable
     end
-
   end
 end

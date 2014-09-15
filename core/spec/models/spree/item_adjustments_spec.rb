@@ -21,6 +21,33 @@ module Spree
       end
     end
 
+    describe "generic adjustments" do
+      before do
+        create(:adjustment, adjustable: target, state: "closed", label: "generic", amount: -1)
+      end
+
+      context "when a generic adjustment is created for a line item" do
+        let(:target) { line_item }
+
+        it "affects the line items adjustment total" do
+          expect(line_item.reload.adjustment_total).to eql(-1)
+        end
+
+        it "factors into the orders adjustment total" do
+          order.update!
+          expect(order.adjustment_total).to eql(-1)
+        end
+      end
+
+      context "when a generic adjustment is created for a order" do
+        let(:target) { order}
+
+        it "affects the orders adjustment total" do
+          expect(order.reload.adjustment_total).to eql(-1)
+        end
+      end
+    end
+
     context "taxes and promotions" do
       let!(:tax_rate) do
         create(:tax_rate, :amount => 0.05)
@@ -44,7 +71,7 @@ module Spree
 
       context "tax included in price" do
         before do
-          create(:adjustment, 
+          create(:adjustment,
             :source => tax_rate,
             :adjustable => line_item,
             :order => order,
@@ -71,7 +98,7 @@ module Spree
 
       context "tax excluded from price" do
         before do
-          create(:adjustment, 
+          create(:adjustment,
             :source => tax_rate,
             :adjustable => line_item,
             :order => order,
