@@ -5,17 +5,22 @@ require 'spec_helper'
 
 describe Spree::Adjustment do
 
-  let(:order) { mock_model(Spree::Order, update!: nil) }
-  let(:adjustment) { Spree::Adjustment.create(:label => "Adjustment", :amount => 5) }
+  let(:order) { Spree::Order.new }
+
+  before do
+    allow(order).to receive(:update!)
+  end
+
+  let(:adjustment) { Spree::Adjustment.create!(label: 'Adjustment', adjustable: order, order: order, amount: 5) }
 
   describe 'non_tax scope' do
     subject do
       Spree::Adjustment.non_tax.to_a
     end
 
-    let!(:tax_adjustment) { create(:adjustment, source: create(:tax_rate)) }
-    let!(:non_tax_adjustment_with_source) { create(:adjustment, source_type: 'Spree::Order', source_id: nil) }
-    let!(:non_tax_adjustment_without_source) { create(:adjustment, source: nil) }
+    let!(:tax_adjustment) { create(:adjustment, order: order, source: create(:tax_rate))                   }
+    let!(:non_tax_adjustment_with_source) { create(:adjustment, order: order, source_type: 'Spree::Order', source_id: nil) }
+    let!(:non_tax_adjustment_without_source) { create(:adjustment, order: order, source: nil)                                 }
 
     it 'select non-tax adjustments' do
       expect(subject).to_not include tax_adjustment
@@ -25,7 +30,7 @@ describe Spree::Adjustment do
   end
 
   context "adjustment state" do
-    let(:adjustment) { create(:adjustment, state: 'open') }
+    let(:adjustment) { create(:adjustment, order: order, state: 'open') }
 
     context "#closed?" do
       it "is true when adjustment state is closed" do

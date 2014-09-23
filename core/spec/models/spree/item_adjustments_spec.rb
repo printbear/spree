@@ -10,7 +10,7 @@ module Spree
     context '#update' do
       it "updates a linked adjustment" do
         tax_rate = create(:tax_rate, :amount => 0.05)
-        adjustment = create(:adjustment, :source => tax_rate, :adjustable => line_item)
+        adjustment = create(:adjustment, order: order, source: tax_rate, adjustable: line_item)
         line_item.price = 10
         line_item.tax_category = tax_rate.tax_category
 
@@ -38,14 +38,15 @@ module Spree
         line_item.price = 20
         line_item.tax_category = tax_rate.tax_category
         line_item.save
-        create(:adjustment, :source => promotion_action, :adjustable => line_item)
+        create(:adjustment, :source => promotion_action, :adjustable => line_item, :order => order)
       end
 
       context "tax included in price" do
         before do
-          create(:adjustment, 
+          create(:adjustment,
             :source => tax_rate,
             :adjustable => line_item,
+            :order => order,
             :included => true
           )
         end
@@ -62,9 +63,10 @@ module Spree
 
       context "tax excluded from price" do
         before do
-          create(:adjustment, 
+          create(:adjustment,
             :source => tax_rate,
             :adjustable => line_item,
+            :order => order,
             :included => false
           )
         end

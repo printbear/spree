@@ -24,7 +24,7 @@ module Spree
       end
 
       def destroy
-        find_adjustment 
+        find_adjustment
         super
       end
 
@@ -41,6 +41,12 @@ module Spree
       def update_totals
         @order.updater.update_adjustment_total
         @order.persist_totals
+      end
+
+      # Override method used to create a new instance to correctly
+      # associate adjustment with order
+      def build_resource
+        parent.adjustments.build(order: parent)
       end
     end
   end
