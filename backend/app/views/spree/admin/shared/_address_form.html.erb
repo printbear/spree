@@ -35,12 +35,12 @@
     <%= f.text_field :address2, :class => 'fullwidth' %>
   </div>
   <div class="field <%= "#{shipping_or_billing}-row" %>">
-    <%= f.label :city, Spree.t(:city) %>
-    <%= f.text_field :city, :class => 'fullwidth' %>
-  </div>
-  <div class="field <%= "#{shipping_or_billing}-row" %>">
     <%= f.label :zipcode, Spree.t(:zip) %>
     <%= f.text_field :zipcode, :class => 'fullwidth' %>
+  </div>
+  <div class="field <%= "#{shipping_or_billing}-row" %>">
+    <%= f.label :city, Spree.t(:city) %>
+    <%= f.text_field :city, :class => 'fullwidth' %>
   </div>
   <div class="field <%= "#{shipping_or_billing}-row" %>">
     <%= f.label :country_id, Spree.t(:country) %>
