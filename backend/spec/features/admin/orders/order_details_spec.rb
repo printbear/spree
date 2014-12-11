@@ -31,7 +31,9 @@ describe "Order Details", js: true do
         end
         click_icon :ok
 
-        page.should have_content("TOTAL: $20.00")
+        within("#order_total") do
+          page.should have_content("$20.00")
+        end
       end
 
       it "can add an item to a shipment" do
@@ -41,7 +43,9 @@ describe "Order Details", js: true do
           click_icon :plus
         end
 
-        page.should have_content("TOTAL: $70.00")
+        within("#order_total") do
+          page.should have_content("$70.00")
+        end
       end
 
       it "can remove an item from a shipment" do
@@ -54,6 +58,19 @@ describe "Order Details", js: true do
         # Click "ok" on confirmation dialog
         page.driver.browser.switch_to.alert.accept
         page.should_not have_content("spree t-shirt")
+      end
+
+      # Regression test for #3862
+      it "can remove an item from a shipment" do
+        page.should have_content("spree t-shirt")
+
+        within_row(1) do
+          click_icon :trash
+        end
+
+        # Click "cancel" on confirmation dialog
+        page.driver.browser.switch_to.alert.dismiss
+        page.should have_content("spree t-shirt")
       end
 
       it "can add tracking information" do
@@ -142,37 +159,17 @@ describe "Order Details", js: true do
             wait_for_ajax
             page.should have_content("Tracking: TRACKING_NUMBER")
           end
-
-          it "can change the second shipment's shipping method" do
-            click_link "Customer Details"
-
-            check "order_use_billing"
-            fill_in "order_bill_address_attributes_firstname", :with => "Joe"
-            fill_in "order_bill_address_attributes_lastname", :with => "User"
-            fill_in "order_bill_address_attributes_address1", :with => "7735 Old Georgetown Road"
-            fill_in "order_bill_address_attributes_address2", :with => "Suite 510"
-            fill_in "order_bill_address_attributes_city", :with => "Bethesda"
-            fill_in "order_bill_address_attributes_zipcode", :with => "20814"
-            fill_in "order_bill_address_attributes_phone", :with => "301-444-5002"
-            select2 "Alabama", :from => "State"
-            select2 "United States of Foo", :from => "Country"
-            click_icon :refresh
-
-            click_link "Order Details"
-
-            within("#shipment_#{order.shipments.last.id}") do
-              within("tr.show-method") do
-                click_icon :edit
-              end
-              select2 "Default", :from => "Shipping Method"
-            end
-            click_icon :ok
-            wait_for_ajax
-
-            page.should have_content("Default")
-          end
         end
       end
+      
+      context "with special_instructions present" do
+        let(:order) { create(:order, :state => 'complete', :completed_at => "2011-02-01 12:36:15", :number => "R100", :special_instructions => "Very special instructions here") }
+        it "will show the special_instructions" do
+          visit spree.edit_admin_order_path(order)
+          expect(page).to have_content("Very special instructions here")
+        end
+      end
+
     end
   end
 

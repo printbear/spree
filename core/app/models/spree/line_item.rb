@@ -22,10 +22,11 @@ module Spree
 
     attr_accessible :quantity, :variant_id
 
-    before_save :update_inventory
-
+    after_save :update_inventory
     after_save :update_order
     after_destroy :update_order
+
+    delegate :name, :description, :should_track_inventory?, to: :variant
 
     attr_accessor :target_shipment
 
@@ -74,7 +75,7 @@ module Spree
     end
 
     def sufficient_stock?
-      Stock::Quantifier.new(variant_id).can_supply? quantity
+      Stock::Quantifier.new(variant).can_supply? quantity
     end
 
     def insufficient_stock?

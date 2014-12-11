@@ -10,14 +10,14 @@ module Spree
           quantity = line_item.quantity
         end
 
-        quantifier = Stock::Quantifier.new(line_item.variant_id)
+        quantifier = Stock::Quantifier.new(line_item.variant)
 
         unless quantifier.can_supply? quantity
           variant = line_item.variant
           display_name = %Q{#{variant.name}}
           display_name += %Q{ (#{variant.options_text})} unless variant.options_text.blank?
 
-          line_item.errors[:quantity] << Spree.t(:out_of_stock, :scope => :order_populator, :item => display_name.inspect)
+          line_item.errors[:quantity] << Spree.t(:selected_quantity_not_available, :scope => :order_populator, :item => display_name.inspect)
         end
       end
     end

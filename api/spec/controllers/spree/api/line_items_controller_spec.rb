@@ -10,11 +10,8 @@ module Spree
     let(:attributes) { [:id, :quantity, :price, :variant] }
     let(:resource_scoping) { { :order_id => order.to_param } }
 
-    before do
-      stub_authentication!
-    end
-
     it "can learn how to create a new line item" do
+      controller.stub :try_spree_current_user => current_api_user
       api_get :new
       json_response["attributes"].should == ["quantity", "price", "variant_id"]
       required_attributes = json_response["required_attributes"]
@@ -23,6 +20,7 @@ module Spree
 
     context "as the order owner" do
       before do
+        controller.stub :try_spree_current_user => current_api_user
         Order.any_instance.stub :user => current_api_user
       end
 
@@ -46,9 +44,33 @@ module Spree
         response.status.should == 204
         lambda { line_item.reload }.should raise_error(ActiveRecord::RecordNotFound)
       end
+
+      context "order contents changed after shipments were created" do
+        let!(:order) { Order.create }
+        let!(:line_item) { order.contents.add(product.master) }
+
+        before { order.create_proposed_shipments }
+
+        it "clear out shipments on create" do
+          expect(order.reload.shipments).not_to be_empty
+          api_post :create, :line_item => { :variant_id => product.master.to_param, :quantity => 1 }
+          expect(order.reload.shipments).to be_empty
+        end
+
+        it "clear out shipments on update" do
+          expect(order.reload.shipments).not_to be_empty
+          api_put :update, :id => line_item.id, :line_item => { :quantity => 1000 }
+          expect(order.reload.shipments).to be_empty
+        end
+      end
     end
 
     context "as just another user" do
+      before do
+        user = create(:user)
+        controller.stub :try_spree_current_user => user
+      end
+
       it "cannot add a new line item to the order" do
         api_post :create, :line_item => { :variant_id => product.master.to_param, :quantity => 1 }
         assert_unauthorized!
@@ -68,6 +90,5 @@ module Spree
         lambda { line_item.reload }.should_not raise_error
       end
     end
-
   end
 end

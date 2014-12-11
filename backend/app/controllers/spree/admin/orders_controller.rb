@@ -10,7 +10,7 @@ module Spree
       def index
         params[:q] ||= {}
         params[:q][:completed_at_not_null] ||= '1' if Spree::Config[:show_only_complete_orders_by_default]
-        @show_only_completed = params[:q][:completed_at_not_null].present?
+        @show_only_completed = params[:q][:completed_at_not_null] == '1'
         params[:q][:s] ||= @show_only_completed ? 'completed_at desc' : 'created_at desc'
 
         # As date params are deleted if @show_only_completed, store
@@ -35,7 +35,7 @@ module Spree
         end
 
         @search = Order.accessible_by(current_ability, :index).ransack(params[:q])
-        @orders = @search.result.includes([:user, :shipments, :payments]).
+        @orders = @search.result(distinct: true).includes([:user, :shipments, :payments]).
           page(params[:page]).
           per(params[:per_page] || Spree::Config[:orders_per_page])
 
@@ -83,7 +83,7 @@ module Spree
         # TODO - possible security check here but right now any admin can before any transition (and the state machine
         # itself will make sure transitions are not applied in the wrong state)
         event = params[:e]
-        if @order.send("#{event}")
+        if @order.state_events.include?(event.to_sym) && @order.send("#{event}")
           flash[:success] = Spree.t(:order_updated)
         else
           flash[:error] = Spree.t(:cannot_perform_operation)
@@ -118,9 +118,8 @@ module Spree
       end
 
       private
-
         def load_order
-          @order = Order.find_by_number!(params[:id], :include => :adjustments) if params[:id]
+          @order = Order.includes(:adjustments).find_by_number!(params[:id])
           authorize! action, @order
         end
 

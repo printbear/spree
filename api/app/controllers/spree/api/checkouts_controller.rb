@@ -1,8 +1,6 @@
 module Spree
   module Api
     class CheckoutsController < Spree::Api::BaseController
-
-      before_filter :load_order,     only: [:show, :update, :next, :advance]
       before_filter :associate_user, only: :update
 
       include Spree::Core::ControllerHelpers::Auth
@@ -18,6 +16,7 @@ module Spree
       end
 
       def next
+        load_order(true)
         authorize! :update, @order, params[:order_token]
         @order.next!
         respond_with(@order, default_template: 'spree/api/orders/show', status: 200)
@@ -26,16 +25,18 @@ module Spree
       end
 
       def advance
+        load_order(true)
         authorize! :update, @order, params[:order_token]
         while @order.next; end
         respond_with(@order, default_template: 'spree/api/orders/show', status: 200)
       end
 
       def show
-        respond_with(@order, default_template: 'spree/api/orders/show', status: 200)
+        redirect_to(api_order_path(params[:id]), status: 301)
       end
 
       def update
+        load_order(true)
         authorize! :update, @order, params[:order_token]
         order_params = object_params
         user_id = order_params.delete(:user_id)
@@ -51,14 +52,6 @@ module Spree
         else
           invalid_resource!(@order)
         end
-      end
-
-      def next
-        @order.next!
-        authorize! :update, @order, params[:order_token]
-        respond_with(@order, :default_template => 'spree/api/orders/show', :status => 200)
-        rescue StateMachine::InvalidTransition
-          respond_with(@order, :default_template => 'spree/api/orders/could_not_transition', :status => 422)
       end
 
       private
@@ -88,9 +81,8 @@ module Spree
           false
         end
 
-        def load_order
-          @order = Spree::Order.find_by_number!(params[:id])
-          authorize! :read, @order, params[:order_token]
+        def load_order(lock = false)
+          @order = Spree::Order.lock(lock).find_by_number!(params[:id])
           raise_insufficient_quantity and return if @order.insufficient_stock_lines.present?
           @order.state = params[:state] if params[:state]
           state_callback(:before)

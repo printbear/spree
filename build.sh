@@ -1,3 +1,6 @@
+#!/bin/sh
+
+set -e
 # Remove Gemfile.lock if it exists
 function rm_gemfile_lock(){
  if [ -e "Gemfile.lock" ]
@@ -8,7 +11,7 @@ function rm_gemfile_lock(){
 }
 
 # Switching Gemfile
-function set_gemfile(){
+set_gemfile(){
   echo "Switching Gemfile..."
   export BUNDLE_GEMFILE="`pwd`/Gemfile"
 }

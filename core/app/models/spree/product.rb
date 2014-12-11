@@ -49,7 +49,7 @@ module Spree
       order: "#{::Spree::Variant.quoted_table_name}.position ASC"
 
     has_many :prices, through: :variants, order: 'spree_variants.position, spree_variants.id, currency'
-    has_many :stock_items, through: :variants
+    has_many :stock_items, through: :variants_including_master
 
     delegate_belongs_to :master, :sku, :price, :currency, :display_amount, :display_price, :weight, :height, :width, :depth, :is_master, :has_default_price?, :cost_currency, :price_in, :amount_in
     delegate_belongs_to :master, :cost_price if Variant.table_exists? && Variant.column_names.include?('cost_price')
@@ -159,8 +159,11 @@ module Spree
       !!deleted_at
     end
 
+    # determine if product is available.
+    # deleted products and products with nil or future available_on date
+    # are not available
     def available?
-      !(available_on.nil? || available_on.future?)
+      !(available_on.nil? || available_on.future?) && !deleted?
     end
 
     # split variants list into hash which shows mapping of opt value onto matching variants
@@ -202,8 +205,13 @@ module Spree
 
     def set_property(property_name, property_value)
       ActiveRecord::Base.transaction do
-        property = Property.where(name: property_name).first_or_create!(presentation: property_name)
-        product_property = ProductProperty.where(product_id: id, property_id: property.id).first_or_initialize
+        # Works around spree_i18n #301
+        property = if Property.exists?(name: property_name)
+          Property.where(name: property_name).first
+        else
+          Property.create(name: property_name, presentation: property_name)
+        end
+        product_property = ProductProperty.where(product_id: self.id, property_id: property.id).first_or_initialize
         product_property.value = property_value
         product_property.save!
       end
@@ -215,10 +223,10 @@ module Spree
     end
 
     def total_on_hand
-      if Spree::Config.track_inventory_levels
-        self.stock_items.sum(&:count_on_hand)
-      else
+      if self.variants_including_master.any? { |v| !v.should_track_inventory? }
         Float::INFINITY
+      else
+        self.stock_items.sum(&:count_on_hand)
       end
     end
 
@@ -260,7 +268,7 @@ module Spree
       # there's a weird quirk with the delegate stuff that does not automatically save the delegate object
       # when saving so we force a save using a hook.
       def save_master
-        master.save if master && (master.changed? || master.new_record? || (master.default_price && (master.default_price.changed || master.default_price.new_record)))
+        master.save if master && (master.changed? || master.new_record? || (master.default_price && (master.default_price.changed? || master.default_price.new_record?)))
       end
 
       def ensure_master

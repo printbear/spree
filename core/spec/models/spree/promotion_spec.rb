@@ -122,6 +122,13 @@ describe Spree::Promotion do
       promotion.activate(@payload)
     end
 
+    # Regression test for #4270
+    it "does not perform actions against an order that is not eligible" do
+      promotion.stub :eligible? => false
+      @action1.should_not_receive(:perform).with(@payload)
+      promotion.activate(@payload)
+    end
+
     it "does activate if newer then order" do
       @action1.should_receive(:perform).with(@payload)
       promotion.created_at = DateTime.now + 2
@@ -179,6 +186,40 @@ describe Spree::Promotion do
       promotion.usage_limit = 2
       promotion.stub(:credits_count => 1)
       promotion.should_not be_expired
+    end
+  end
+
+  context "#credits_count" do
+    let!(:promotion) do
+      promotion = Spree::Promotion.new
+      promotion.event_name = 'spree.checkout.coupon_code_added'
+      promotion.name = "Foo"
+      promotion.code = "XXX"
+      calculator = Spree::Calculator::FlatRate.new
+      promotion.tap(&:save)
+    end
+
+    let!(:action) do
+      calculator = Spree::Calculator::FlatRate.new
+      action_params = { :promotion => promotion, :calculator => calculator }
+      action = Spree::Promotion::Actions::CreateAdjustment.create(action_params, :without_protection => true)
+      promotion.actions << action
+      action
+    end
+
+    let!(:adjustment) do
+      Spree::Adjustment.create!({ :originator => action, :amount => 10, :label => "Promotional adjustment"}, :without_protection => true)
+    end
+
+    it "counts eligible adjustments" do
+      adjustment.update_column(:eligible, true)
+      expect(promotion.credits_count).to eq(1)
+    end
+
+    # Regression test for #4112
+    it "does not count ineligible adjustments" do
+      adjustment.update_column(:eligible, false)
+      expect(promotion.credits_count).to eq(0)
     end
   end
 

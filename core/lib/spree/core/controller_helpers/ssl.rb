@@ -65,7 +65,6 @@ module Spree
                 redirect_to redirect_options
               end
             end
-
         end
       end
     end

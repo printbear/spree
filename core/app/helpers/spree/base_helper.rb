@@ -34,7 +34,7 @@ module Spree
       v.options_text
     end
 
-    def meta_data_tags
+    def meta_data
       object = instance_variable_get('@'+controller_name.singularize)
       meta = {}
 
@@ -51,8 +51,11 @@ module Spree
         keywords: Spree::Config[:default_meta_keywords],
         description: Spree::Config[:default_meta_description]
       })
+      meta
+    end
 
-      meta.map do |name, content|
+    def meta_data_tags
+      meta_data.map do |name, content|
         tag('meta', name: name, content: content)
       end.join("\n")
     end
@@ -117,7 +120,7 @@ module Spree
       countries.collect do |country|
         country.name = Spree.t(country.iso, scope: 'country_names', default: country.name)
         country
-      end.sort { |a, b| a.name <=> b.name }
+      end.sort_by { |c| c.name.parameterize }
     end
 
     def seo_url(taxon)

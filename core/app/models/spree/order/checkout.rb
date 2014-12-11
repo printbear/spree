@@ -56,7 +56,7 @@ module Spree
               end
 
               event :resume do
-                transition :to => :resumed, :from => :canceled, :if => :allow_resume?
+                transition :to => :resumed, :from => :canceled, :if => :canceled?
               end
 
               event :authorize_return do
@@ -71,11 +71,16 @@ module Spree
 
               before_transition :from => :cart, :do => :ensure_line_items_present
 
-              before_transition :to => :delivery, :do => :create_proposed_shipments
-              before_transition :to => :delivery, :do => :ensure_available_shipping_rates
+              if states[:address]
+                before_transition :from => :address, :do => :create_tax_charge!
+              end
+
+              if states[:delivery]
+                before_transition :to => :delivery, :do => :create_proposed_shipments
+                before_transition :to => :delivery, :do => :ensure_available_shipping_rates
+              end
 
               after_transition :to => :complete, :do => :finalize!
-              after_transition :to => :delivery, :do => :create_tax_charge!
               after_transition :to => :resumed,  :do => :after_resume
               after_transition :to => :canceled, :do => :after_cancel
             end
@@ -143,6 +148,10 @@ module Spree
 
           def self.checkout_steps
             @checkout_steps ||= {}
+          end
+
+          def self.checkout_step_names
+            self.checkout_steps.keys
           end
 
           def self.add_transition(options)

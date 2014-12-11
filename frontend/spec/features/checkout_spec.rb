@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe "Checkout" do
+describe "Checkout", inaccessible: true do
 
   let!(:country) { create(:country, :states_required => true) }
   let!(:state) { create(:state, :country => country) }
@@ -22,13 +22,26 @@ describe "Checkout" do
         click_button "Checkout"
       end
 
-      it "should default checkbox to checked" do
+      it "should default checkbox to checked", inaccessible: true do
         find('input#order_use_billing').should be_checked
       end
 
       it "should remain checked when used and visitor steps back to address step", :js => true do
         fill_in_address
         find('input#order_use_billing').should be_checked
+      end
+    end
+
+    # Regression test for #4079
+    context "persists state when on address page" do
+      before do
+        add_mug_to_cart
+        click_button "Checkout"
+      end
+
+      specify do
+        Spree::Order.count.should == 1
+        Spree::Order.last.state.should == "address"
       end
     end
 
@@ -65,9 +78,31 @@ describe "Checkout" do
         Spree::Order.last.shipments.first.adjustment.state.should_not == "closed"
       end
     end
+
+    #regression test for #3945
+    context "when Spree::Config[:always_include_confirm_step] is true" do
+      before do
+        Spree::Config[:always_include_confirm_step] = true
+      end
+
+      it "displays confirmation step", :js => true do
+        add_mug_to_cart
+        click_button "Checkout"
+
+        fill_in "order_email", :with => "ryan@spreecommerce.com"
+        fill_in_address
+
+        click_button "Save and Continue"
+        click_button "Save and Continue"
+        click_button "Save and Continue"
+
+        continue_button = find(".continue")
+        continue_button.value.should == "Place Order"
+      end
+    end
   end
 
-  #regression test for #2694
+  # Regression test for #2694 and #4117
   context "doesn't allow bad credit card numbers" do
     before(:each) do
       order = OrderWalkthrough.up_to(:delivery)
@@ -80,10 +115,9 @@ describe "Checkout" do
 
       Spree::CheckoutController.any_instance.stub(:current_order => order)
       Spree::CheckoutController.any_instance.stub(:try_spree_current_user => user)
-      Spree::CheckoutController.any_instance.stub(:skip_state_validation? => true)
     end
 
-    it "redirects to payment page" do
+    it "redirects to payment page", inaccessible: true do
       visit spree.checkout_state_path(:delivery)
       click_button "Save and Continue"
       choose "Credit Card"
@@ -92,22 +126,24 @@ describe "Checkout" do
       click_button "Save and Continue"
       click_button "Place Order"
       page.should have_content("Bogus Gateway: Forced failure")
-      click_button "Place Order"
-      page.should have_content("No pending payments")
+      page.current_url.should include("/checkout/payment")
     end
   end
 
   context "and likes to double click buttons" do
-    before(:each) do
-      user = create(:user)
-
+    let!(:user) { create(:user) }
+    
+    let!(:order) do
       order = OrderWalkthrough.up_to(:delivery)
       order.stub :confirmation_required? => true
 
       order.reload
       order.user = user
       order.update!
+      order
+    end
 
+    before(:each) do
       Spree::CheckoutController.any_instance.stub(:current_order => order)
       Spree::CheckoutController.any_instance.stub(:try_spree_current_user => user)
       Spree::CheckoutController.any_instance.stub(:skip_state_validation? => true)
@@ -125,6 +161,7 @@ describe "Checkout" do
     end
 
     it "prevents double clicking the confirm button on checkout", :js => true do
+      order.payments << create(:payment)
       visit spree.checkout_state_path(:confirm)
 
       # prevent form submit to verify button is disabled

@@ -28,11 +28,11 @@ module Spree
       end
 
       def option_value_attributes
-        [:id, :name, :presentation, :option_type_name, :option_type_id]
+        [:id, :name, :presentation, :option_type_name, :option_type_id, :option_type_presentation]
       end
 
       def order_attributes
-        [:id, :number, :item_total, :total, :state, :adjustment_total, :user_id, :created_at, :updated_at, :completed_at, :payment_total, :shipment_state, :payment_state, :email, :special_instructions, :token]
+        [:id, :number, :item_total, :total, :ship_total, :state, :adjustment_total, :user_id, :created_at, :updated_at, :completed_at, :payment_total, :shipment_state, :payment_state, :email, :special_instructions, :token, :channel, :currency]
       end
 
       def line_item_attributes
@@ -44,7 +44,7 @@ module Spree
       end
 
       def payment_attributes
-        [:id, :source_type, :source_id, :amount, :payment_method_id, :response_code, :state, :avs_response, :created_at, :updated_at]
+        [:id, :source_type, :source_id, :amount, :display_amount, :payment_method_id, :response_code, :state, :avs_response, :created_at, :updated_at]
       end
 
       def payment_method_attributes
@@ -60,7 +60,7 @@ module Spree
       end
 
       def taxon_attributes
-        [:id, :name, :pretty_name, :permalink, :position, :parent_id, :taxonomy_id]
+        [:id, :name, :pretty_name, :permalink, :parent_id, :taxonomy_id]
       end
 
       def inventory_unit_attributes
@@ -113,4 +113,3 @@ module Spree
     end
   end
 end
-

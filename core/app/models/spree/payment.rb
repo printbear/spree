@@ -4,7 +4,7 @@ module Spree
 
     IDENTIFIER_CHARS = (('A'..'Z').to_a + ('0'..'9').to_a - %w(0 1 I O)).freeze
 
-    belongs_to :order, class_name: 'Spree::Order'
+    belongs_to :order, class_name: 'Spree::Order', touch: true
     belongs_to :source, polymorphic: true
     belongs_to :payment_method, class_name: 'Spree::PaymentMethod'
 
@@ -12,7 +12,7 @@ module Spree
     has_many :log_entries, as: :source
 
     before_validation :validate_source
-    before_save :set_unique_identifier
+    before_create :set_unique_identifier
 
     after_save :create_payment_profile, if: :profiles_supported?
 
@@ -31,14 +31,16 @@ module Spree
     scope :completed, with_state('completed')
     scope :pending, with_state('pending')
     scope :failed, with_state('failed')
-    scope :valid, where('state NOT IN (?)', %w(failed invalid))
+    scope :valid, where("#{quoted_table_name}.state NOT IN (?)", %w(failed invalid))
 
     after_rollback :persist_invalid
+
+    validates :amount, numericality: true
 
     def persist_invalid
       return unless ['failed', 'invalid'].include?(state)
       state_will_change!
-      save 
+      save
     end
 
     # order state machine (see http://github.com/pluginaweek/state_machine/tree/master for details)
@@ -77,12 +79,22 @@ module Spree
     end
     alias display_amount money
 
+    def amount=(amount)
+      self[:amount] =
+        case amount
+        when String
+          separator = I18n.t('number.currency.format.separator')
+          number    = amount.delete("^0-9-#{separator}").tr(separator, '.')
+          number.to_d if number.present?
+        end || amount
+    end
+
     def offsets_total
       offsets.pluck(:amount).sum
     end
 
     def credit_allowed
-      amount - offsets_total
+      amount - offsets_total.abs
     end
 
     def can_credit?

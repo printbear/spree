@@ -5,7 +5,8 @@ describe Spree::Shipment do
   let(:order) { mock_model Spree::Order, backordered?: false,
                                          canceled?: false,
                                          can_ship?: true,
-                                         currency: 'USD' }
+                                         currency: 'USD',
+                                         touch: true }
   let(:shipping_method) { create(:shipping_method, name: "UPS") }
   let(:shipment) do
     shipment = Spree::Shipment.new order: order
@@ -16,6 +17,20 @@ describe Spree::Shipment do
 
   let(:charge) { create(:adjustment) }
   let(:variant) { mock_model(Spree::Variant) }
+
+  # Regression test for #4063
+  context "number generation" do
+    before do
+      order.stub :update!
+    end
+
+    it "generates a number containing a letter + 11 numbers" do
+      shipment.save
+      shipment.number[0].should == "H"
+      /\d{11}/.match(shipment.number).should_not be_nil
+      shipment.number.length.should == 12
+    end
+  end
 
   it 'is backordered if one if its inventory_units is backordered' do
     shipment.stub(inventory_units: [
@@ -98,6 +113,7 @@ describe Spree::Shipment do
 
     context 'refresh_rates' do
       let(:mock_estimator) { double('estimator', shipping_rates: shipping_rates) }
+      before { shipment.stub(:can_get_rates?){ true } }
 
       it 'should request new rates, and maintain shipping_method selection' do
         Spree::Stock::Estimator.should_receive(:new).with(shipment.order).and_return(mock_estimator)
@@ -119,6 +135,11 @@ describe Spree::Shipment do
         shipment.shipping_rates.delete_all
         shipment.stub(shipped?: true)
         shipment.refresh_rates.should == []
+      end
+
+      it "can't get rates without a shipping address" do
+        shipment.order(ship_address: nil)
+        expect(shipment.refresh_rates).to eq([])
       end
 
       context 'to_package' do
@@ -219,6 +240,26 @@ describe Spree::Shipment do
     end
   end
 
+  context "when variant inventory tracking is false" do
+    it "should include line items without inventory if variant inventory tracking is off" do
+      line_items = [mock_model(Spree::LineItem)]
+      line_items.each { |li| li.stub should_track_inventory?: false }
+      order.stub complete?: true
+      order.stub line_items: line_items
+      shipment.line_items.should == line_items
+    end
+
+    it "should not include line items without inventory if variant inventory tracking is on" do
+      line_items = [mock_model(Spree::LineItem)]
+      line_items.each { |li| li.stub should_track_inventory?: true }
+      order.stub complete?: true
+      order.stub line_items: line_items
+      shipment.line_items.should == []
+    end
+  end
+
+
+
   context "when order is completed" do
     after { Spree::Config.set track_inventory_levels: true }
 
@@ -257,10 +298,38 @@ describe Spree::Shipment do
     end
 
     it 'restocks the items' do
-      shipment.stub_chain(:inventory_units, :joins, includes: [mock_model(Spree::InventoryUnit, variant: variant)])
+      shipment.stub_chain(:inventory_units, :joins, includes: [mock_model(Spree::InventoryUnit, state: "on_hand", variant: variant)])
       shipment.stock_location = mock_model(Spree::StockLocation)
       shipment.stock_location.should_receive(:restock).with(variant, 1, shipment)
       shipment.after_cancel
+    end
+
+    context "with backordered inventory units" do
+      let(:order) { create(:order) }
+      let(:variant) { create(:variant) }
+      let(:other_order) { create(:order) }
+
+      before do
+        order.contents.add variant
+        order.create_proposed_shipments
+
+        other_order.contents.add variant
+        other_order.create_proposed_shipments
+      end
+
+      it "doesn't fill backorders when restocking inventory units" do
+        shipment = order.shipments.first
+        expect(shipment.inventory_units.count).to eq 1
+        expect(shipment.inventory_units.first).to be_backordered
+
+        other_shipment = other_order.shipments.first
+        expect(other_shipment.inventory_units.count).to eq 1
+        expect(other_shipment.inventory_units.first).to be_backordered
+
+        expect {
+          shipment.cancel!
+        }.not_to change { other_shipment.inventory_units.first.state }
+      end
     end
   end
 

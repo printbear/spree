@@ -211,9 +211,10 @@ describe Spree::Order do
     end
 
     it "should freeze all adjustments" do
-      # Stub this method as it's called due to a callback
+      # Stub these methods as they're called due to a callback
       # and it's irrelevant to this test
       order.stub :has_available_shipment
+      order.stub :has_available_payment
       Spree::OrderMailer.stub_chain :confirm_email, :deliver
       adjustments = double
       order.stub :adjustments => adjustments
@@ -222,8 +223,14 @@ describe Spree::Order do
     end
 
     it "should log state event" do
-      order.state_changes.should_receive(:create).exactly(3).times #order, shipment & payment state changes
       order.finalize!
+      order_changes = order.state_changes.where(:name => "order")
+      order_changes.count.should == 1
+      expect(order_changes.first.previous_state).to eq('cart')
+      expect(order_changes.first.next_state).to eq('complete')
+      payment_changes = order.state_changes.where(:name => "payment")
+      expect(payment_changes.first.previous_state).to be_nil
+      expect(payment_changes.first.next_state).to eq('balance_due')
     end
   end
 
@@ -468,6 +475,13 @@ describe Spree::Order do
       lambda { order_2.reload }.should raise_error(ActiveRecord::RecordNotFound)
     end
 
+    context "user is provided" do
+      it "assigns user to new order" do
+        order_1.merge!(order_2, user)
+        expect(order_1.user).to eq user
+      end
+    end
+
     context "merging together two orders with line items for the same variant" do
       before do
         order_1.contents.add(variant, 1)
@@ -505,10 +519,39 @@ describe Spree::Order do
   end
 
   context "#confirmation_required?" do
-    it "does not bomb out when an order has an unpersisted payment" do
+
+    # Regression test for #4117
+    it "is required if the state is currently 'confirm'" do
       order = Spree::Order.new
-      order.payments.build
       assert !order.confirmation_required?
+      order.state = 'confirm'
+      assert order.confirmation_required?
+    end
+
+    context 'Spree::Config[:always_include_confirm_step] == true' do
+
+      before do
+        Spree::Config[:always_include_confirm_step] = true
+      end
+
+      it "returns true if payments empty" do
+        order = Spree::Order.new
+        assert order.confirmation_required?
+      end
+    end
+
+    context 'Spree::Config[:always_include_confirm_step] == false' do
+
+      it "returns false if payments empty and Spree::Config[:always_include_confirm_step] == false" do
+        order = Spree::Order.new
+        assert !order.confirmation_required?
+      end
+
+      it "does not bomb out when an order has an unpersisted payment" do
+        order = Spree::Order.new
+        order.payments.build
+        assert !order.confirmation_required?
+      end
     end
   end
 
@@ -603,6 +646,62 @@ describe Spree::Order do
     it "puts order back in address state" do
       order.ensure_updated_shipments
       expect(order.state).to eql "address"
+    end
+  end
+
+  # Regression tests for #4072
+  context "#state_changed" do
+    let(:order) { FactoryGirl.create(:order) }
+
+    it "logs state changes" do
+      order.update_column(:payment_state, 'balance_due')
+      order.payment_state = 'paid'
+      expect(order.state_changes).to be_empty
+      order.state_changed('payment')
+      state_change = order.state_changes.where(:name => 'payment').first
+      expect(state_change.previous_state).to eq('balance_due')
+      expect(state_change.next_state).to eq('paid')
+    end
+
+    it "does not do anything if state does not change" do
+      order.update_column(:payment_state, 'balance_due')
+      expect(order.state_changes).to be_empty
+      order.state_changed('payment')
+      expect(order.state_changes).to be_empty
+    end
+  end
+
+  # Regression test for #4199
+  context "#available_payment_methods" do
+    it "includes frontend payment methods" do
+      payment_method = Spree::PaymentMethod.create!({
+        :name => "Fake",
+        :active => true,
+        :display_on => "front_end",
+        :environment => Rails.env
+      })
+      expect(order.available_payment_methods).to include(payment_method)
+    end
+
+    it "includes 'both' payment methods" do
+      payment_method = Spree::PaymentMethod.create!({
+        :name => "Fake",
+        :active => true,
+        :display_on => "both",
+        :environment => Rails.env
+      })
+      expect(order.available_payment_methods).to include(payment_method)
+    end
+
+    it "does not include a payment method twice if display_on is blank" do
+      payment_method = Spree::PaymentMethod.create!({
+        :name => "Fake",
+        :active => true,
+        :display_on => "both",
+        :environment => Rails.env
+      })
+      expect(order.available_payment_methods.count).to eq(1)
+      expect(order.available_payment_methods).to include(payment_method)
     end
   end
 end

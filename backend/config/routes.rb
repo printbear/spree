@@ -42,6 +42,7 @@ Spree::Core::Engine.routes.draw do
           post :update_positions
         end
       end
+      resources :variants_including_master, :only => [:update]
     end
 
     get '/variants/search', :to => "variants#search", :as => :search_variants
@@ -143,7 +144,6 @@ Spree::Core::Engine.routes.draw do
       end
     end
 
-    resources :stock_movements
     resources :stock_items, :only => [:create, :update, :destroy]
     resources :tax_rates
     resource  :tax_settings

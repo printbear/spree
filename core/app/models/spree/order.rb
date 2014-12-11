@@ -28,7 +28,7 @@ module Spree
 
     attr_accessible :line_items, :bill_address_attributes, :ship_address_attributes,
                     :payments_attributes, :ship_address, :bill_address, :currency,
-                    :line_items_attributes, :number, :email, :use_billing, 
+                    :line_items_attributes, :number, :email, :use_billing,
                     :special_instructions, :shipments_attributes, :coupon_code
 
     attr_reader :coupon_code
@@ -53,6 +53,7 @@ module Spree
     has_many :payments, dependent: :destroy
     has_many :return_authorizations, dependent: :destroy
     has_many :state_changes, as: :stateful
+    has_many :inventory_units
 
     has_many :shipments, dependent: :destroy, :class_name => "Shipment" do
       def states
@@ -77,6 +78,7 @@ module Spree
 
     validates :email, presence: true, if: :require_email
     validates :email, email: true, if: :require_email, allow_blank: true
+    validates :number, uniqueness: true
     validate :has_available_shipment
     validate :has_available_payment
 
@@ -89,8 +91,12 @@ module Spree
       where(number: number)
     end
 
+    scope :created_between, ->(start_date, end_date) { where(created_at: start_date..end_date) }
+    scope :completed_between, ->(start_date, end_date) { where(completed_at: start_date..end_date) }
+
     def self.between(start_date, end_date)
-      where(created_at: start_date..end_date)
+      ActiveSupport::Deprecation.warn("Order#between will be deprecated in Spree 2.3, please use either Order#created_between or Order#completed_between instead.")
+      self.created_between(start_date, end_date)
     end
 
     def self.by_customer(customer)
@@ -102,7 +108,7 @@ module Spree
     end
 
     def self.complete
-      where('completed_at IS NOT NULL')
+      where("#{quoted_table_name}.completed_at IS NOT NULL")
     end
 
     def self.incomplete
@@ -153,7 +159,7 @@ module Spree
     end
 
     def completed?
-      !! completed_at
+      completed_at.present? || complete?
     end
 
     # Indicates whether or not the user is allowed to proceed to checkout.
@@ -171,7 +177,12 @@ module Spree
 
     # If true, causes the confirmation step to happen during the checkout process
     def confirmation_required?
-      payments.map(&:payment_method).compact.any?(&:payment_profiles_supported?)
+      Spree::Config[:always_include_confirm_step] ||
+        payments.valid.map(&:payment_method).compact.any?(&:payment_profiles_supported?) ||
+        # Little hacky fix for #4117
+        # If this wasn't here, order would transition to address state on confirm failure
+        # because there would be no valid payments any more.
+        state == 'confirm'
     end
 
     # Indicates the number of items in the order
@@ -244,13 +255,6 @@ module Spree
       shipment_state.nil? || %w{ready backorder pending}.include?(shipment_state)
     end
 
-    def allow_resume?
-      # we shouldn't allow resume for legacy orders b/c we lack the information
-      # necessary to restore to a previous state
-      return false if state_changes.empty? || state_changes.last.previous_state.nil?
-      true
-    end
-
     def awaiting_returns?
       return_authorizations.any? { |return_authorization| return_authorization.authorized? }
     end
@@ -283,15 +287,11 @@ module Spree
       end
     end
 
-    # FIXME refactor this method and implement validation using validates_* utilities
     def generate_order_number
-      record = true
-      while record
+      self.number ||= loop do
         random = "R#{Array.new(9){rand(9)}.join}"
-        record = self.class.where(number: random).first
+        break random unless self.class.exists?(number: random)
       end
-      self.number = random if self.number.blank?
-      self.number
     end
 
     def shipment
@@ -403,7 +403,7 @@ module Spree
     end
 
     def available_payment_methods
-      @available_payment_methods ||= PaymentMethod.available(:front_end)
+      @available_payment_methods ||= (PaymentMethod.available(:front_end) + PaymentMethod.available(:both)).uniq
     end
 
     def pending_payments
@@ -459,10 +459,10 @@ module Spree
     end
 
     def insufficient_stock_lines
-     @insufficient_stock_lines ||= line_items.select(&:insufficient_stock?)
+     line_items.select(&:insufficient_stock?)
     end
 
-    def merge!(order)
+    def merge!(order, user = nil)
       order.line_items.each do |line_item|
         next unless line_item.currency == currency
         current_line_item = self.line_items.find_by_variant_id(line_item.variant_id)
@@ -474,14 +474,17 @@ module Spree
           line_item.save
         end
       end
+
+      self.associate_user!(user) if !self.user && !user.blank?
+
       # So that the destroy doesn't take out line items which may have been re-assigned
       order.line_items.reload
       order.destroy
     end
 
     def empty!
-      line_items.destroy_all
       adjustments.destroy_all
+      line_items.destroy_all
     end
 
     def clear_adjustments!
@@ -497,12 +500,15 @@ module Spree
       state = "#{name}_state"
       if persisted?
         old_state = self.send("#{state}_was")
-        self.state_changes.create({
-          previous_state: old_state,
-          next_state:     self.send(state),
-          name:           name,
-          user_id:        self.user_id
-        }, without_protection: true)
+        new_state = self.send(state)
+        unless old_state == new_state
+          self.state_changes.create({
+            previous_state: old_state,
+            next_state:     new_state,
+            name:           name,
+            user_id:        self.user_id
+          }, :without_protection => true)
+        end
       end
     end
 
@@ -544,7 +550,7 @@ module Spree
     #
     # At some point the might need to force the order to transition from address
     # to delivery again so that proper updated shipments are created.
-    # e.g. customer goes back from payment step and changes order items 
+    # e.g. customer goes back from payment step and changes order items
     def ensure_updated_shipments
       if shipments.any?
         self.shipments.destroy_all
@@ -564,7 +570,7 @@ module Spree
 
       # Determine if email is required (we don't want validation errors before we hit the checkout)
       def require_email
-        return true unless new_record? or state == 'cart'
+        return true unless new_record? or ['cart', 'address'].include?(state)
       end
 
       def ensure_line_items_present
@@ -587,15 +593,20 @@ module Spree
       end
 
       def has_available_payment
-        return unless delivery?
+        return unless has_step?("delivery") && delivery?
         # errors.add(:base, :no_payment_methods_available) if available_payment_methods.empty?
       end
 
       def after_cancel
         shipments.each { |shipment| shipment.cancel! }
+        payments.completed.each { |payment| payment.cancel! }
 
+        send_cancel_email
+        self.update_column(:payment_state, 'credit_owed') unless shipped?
+      end
+
+      def send_cancel_email
         OrderMailer.cancel_email(self.id).deliver
-        self.payment_state = 'credit_owed' unless shipped?
       end
 
       def after_resume

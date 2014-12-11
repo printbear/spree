@@ -12,6 +12,7 @@ end
 describe Spree::Product do
   context 'product instance' do
     let(:product) { create(:product) }
+    let(:variant) { create(:variant, :product => product) }
 
     context '#duplicate' do
       before do
@@ -35,6 +36,64 @@ describe Spree::Product do
 
         clone = product.duplicate
         clone.name.should == product.name.reverse
+      end
+    end
+
+    context "master variant" do
+      context "when master variant changed" do
+        before do
+          product.master.sku = "Something changed"
+        end
+
+        it "saves the master" do
+          product.master.should_receive(:save)
+          product.save
+        end
+      end
+
+      context "when master default price is a new record" do
+        before do
+          @price = product.master.build_default_price
+          @price.price = 12
+        end
+
+        it "saves the master" do
+          product.master.should_receive(:save)
+          product.save
+        end
+
+        it "saves the default price" do
+          proc do
+            product.save
+          end.should change{ @price.new_record? }.from(true).to(false)
+        end
+
+      end
+
+      context "when master default price changed" do
+        before do
+          master = product.master
+          master.default_price = create(:price, :variant => master)
+          master.save!
+          product.master.default_price.price = 12
+        end
+
+        it "saves the master" do
+          product.master.should_receive(:save)
+          product.save
+        end
+
+        it "saves the default price" do
+          product.master.default_price.should_receive(:save)
+          product.save
+        end
+      end
+
+      context "when master variant and price haven't changed" do
+        it "does not save the master" do
+          product.master.should_not_receive(:save)
+          product.save
+        end
       end
     end
 
@@ -115,6 +174,11 @@ describe Spree::Product do
         product.available_on = 1.day.from_now
         product.should_not be_available
       end
+
+      it "should not be available if destroyed" do 
+        product.destroy 
+        product.should_not be_available 
+      end 
     end
 
     context "variants_and_option_values" do
@@ -150,6 +214,15 @@ describe Spree::Product do
       it "doesnt raise ReadOnlyRecord error" do
         Spree::StockMovement.create!(stock_item: stock_item, quantity: 1)
         expect { product.destroy }.not_to raise_error
+      end
+    end
+
+    # Regression test for #3737
+    context "has stock items" do
+      let(:product) { create(:product) }
+      it "can retreive stock items" do
+        product.master.stock_items.first.should_not be_nil
+        product.stock_items.first.should_not be_nil
       end
     end
   end
@@ -438,7 +511,12 @@ describe Spree::Product do
   describe '#total_on_hand' do
     it 'should be infinite if track_inventory_levels is false' do
       Spree::Config[:track_inventory_levels] = false
-      build(:product).total_on_hand.should eql(Float::INFINITY)
+      build(:product, :variants_including_master => [build(:master_variant)]).total_on_hand.should eql(Float::INFINITY)
+    end
+
+    it 'should be infinite if variant is on demand' do
+      Spree::Config[:track_inventory_levels] = true
+      build(:product, :variants_including_master => [build(:on_demand_master_variant)]).total_on_hand.should eql(Float::INFINITY)
     end
 
     it 'should return master variants quantity' do

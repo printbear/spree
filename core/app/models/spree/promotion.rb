@@ -26,13 +26,6 @@ module Spree
     validates :path, presence: true, if: lambda{|r| r.event_name == 'spree.content.visited' }
     validates :usage_limit, numericality: { greater_than: 0, allow_nil: true }
 
-    # TODO: This shouldn't be necessary with :autosave option but nested attribute updating of actions is broken without it
-    after_save :save_rules_and_actions
-
-    def save_rules_and_actions
-      (rules + actions).each &:save
-    end
-
     def self.advertised
       where(advertise: true)
     end
@@ -42,21 +35,24 @@ module Spree
     end
 
     def activate(payload)
-      return unless order_activatable? payload[:order]
+      if order_activatable?(payload[:order]) && eligible?(payload[:order])
+        # make sure code is always downcased (old databases might have mixed case codes)
+        if code.present?
+          event_code = payload[:coupon_code]
+          return unless event_code == self.code.downcase.strip
+        end
 
-      # make sure code is always downcased (old databases might have mixed case codes)
-      if code.present?
-        event_code = payload[:coupon_code]
-        return unless event_code == self.code.downcase.strip
-      end
+        if path.present?
+          return unless path == payload[:path]
+        end
 
-      if path.present?
-        return unless path == payload[:path]
-      end
+        actions.each do |action|
+          action.perform(payload)
+        end
 
-      actions.each do |action|
-        action.perform(payload)
+        return true
       end
+      false
     end
 
     # called anytime order.update! happens
@@ -96,7 +92,7 @@ module Spree
     end
 
     def credits
-      Adjustment.promotion.where(originator_id: actions.map(&:id))
+      Adjustment.eligible.promotion.where(originator_id: actions.map(&:id))
     end
 
     def credits_count

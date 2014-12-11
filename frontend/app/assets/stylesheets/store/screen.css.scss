@@ -1,4 +1,4 @@
-@import 'variables';
+@import 'store/variables';
 
 /*--------------------------------------*/
 /* Basic styles
@@ -113,12 +113,16 @@ input[type="password"], input[type="search"], input[type="tel"],
 input[type="text"], input[type="time"], input[type="url"],
 input[type="week"] {
   border: $default_border;
-  padding: 5px 10px;
+  padding: 5px;
   font-family: $ff_base;
   font-size: $input_box_font_size;
 
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+
   &:active, &:focus {
-    border-color: $link_text_color;;
+    border-color: $link_text_color;
     outline: none;
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
@@ -146,6 +150,11 @@ span.required {
 
 fieldset {
   margin: 0;
+  min-width: 100%;
+
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
 }
 
 input[type="submit"], input[type="button"],
@@ -300,7 +309,7 @@ nav #main-nav-bar {
     &#link-to-cart {
       float: right;
       padding-left: 24px;
-      background: url("cart.png") no-repeat left center;
+      background: asset-url("store/cart.png", image) no-repeat left center;
 
       &:hover {
         border-color: $link_text_color;
@@ -724,6 +733,14 @@ ul#products {
     color: $link_text_color;
     padding: 5px;
     margin-left: 15px;
+  }
+}
+
+#billing {
+  input[type="text"], input[type="email"],
+  input[type="tel"], input[type="number"],
+  select, textarea {
+    width: 100%;
   }
 }
 
