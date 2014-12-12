@@ -10,8 +10,6 @@ module Spree
 
           layout :get_layout
 
-          before_filter :set_user_language
-
           protected
 
           # Convenience method for firing instrumentation events with the default payload hash
@@ -60,14 +58,6 @@ module Spree
           end
 
           private
-
-          def set_user_language
-            locale = session[:locale]
-            locale ||= config_locale if respond_to?(:config_locale, true)
-            locale ||= Rails.application.config.i18n.default_locale
-            locale ||= I18n.default_locale unless I18n.available_locales.map(&:to_s).include?(locale)
-            I18n.locale = locale
-          end
 
           # Returns which layout to render.
           # 
