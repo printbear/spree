@@ -17,6 +17,7 @@ $(document).ready(function() {
       ajax: {
         url: Spree.routes.user_search,
         datatype: 'json',
+        quietMillis: 800,
         data: function(term, page) {
           return { q: term }
         },
