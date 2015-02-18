@@ -527,4 +527,29 @@ describe Spree::OrderContents do
     end
   end
 
+  describe "refresh_shipment_rates" do
+    let!(:order) { create(:order_with_line_items, line_items_count: 1) }
+    let(:shipment) { order.shipments.first }
+
+    context 'when the shipment is not shipped' do
+      it 'refreshes the rates' do
+        new_shipping_method = create(:shipping_method)
+        order.contents.refresh_shipment_rates
+        expect(shipment.shipping_methods.reload).to include(new_shipping_method)
+      end
+    end
+
+    context 'when the shipment is shipped' do
+      before do
+        shipment.update_attributes!(state: 'shipped')
+      end
+
+      it 'does not refresh the rates' do
+        new_shipping_method = create(:shipping_method)
+        order.contents.refresh_shipment_rates
+        expect(shipment.shipping_methods.reload).not_to include(new_shipping_method)
+      end
+    end
+  end
+
 end

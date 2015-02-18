@@ -530,7 +530,7 @@ describe "Order Details", js: true do
 
     it 'can ship' do
       order = create(:order_ready_to_ship)
-      order.refresh_shipment_rates
+      order.contents.refresh_shipment_rates
       visit spree.edit_admin_order_path(order)
       click_icon 'arrow-right'
       wait_for_ajax

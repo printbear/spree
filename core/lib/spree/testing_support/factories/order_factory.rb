@@ -39,7 +39,7 @@ FactoryGirl.define do
         state 'complete'
 
         after(:create) do |order|
-          order.refresh_shipment_rates
+          order.contents.refresh_shipment_rates
           order.update_column(:completed_at, Time.now)
         end
 
