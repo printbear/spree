@@ -51,7 +51,7 @@ describe Spree::Admin::OrdersController do
 
     context "#resume" do
       it "resumes an order" do
-        expect(order).to receive(:resume!)
+        expect(order.contents).to receive(:resume)
         spree_put :resume, id: order.number
         expect(flash[:success]).to eq Spree.t(:order_resumed)
       end

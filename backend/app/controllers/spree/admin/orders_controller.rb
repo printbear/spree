@@ -132,7 +132,7 @@ module Spree
       end
 
       def resume
-        @order.resume!
+        @order.contents.resume
         flash[:success] = Spree.t(:order_resumed)
         redirect_to :back
       end

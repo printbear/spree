@@ -356,6 +356,51 @@ describe Spree::OrderContents do
     end
   end
 
+  describe "#resume" do
+    let(:order) { create(:order_ready_to_ship, line_items_count: 1) }
+    let(:shipment) { order.shipments.first }
+
+    before do
+      order.contents.cancel
+      expect(order.state).to eq('canceled')
+      expect(shipment.state).to eq('canceled')
+    end
+
+    describe "order state" do
+      it "is set to resumed" do
+        order.contents.resume
+        expect(order.state).to eq('resumed')
+      end
+    end
+
+    describe "shipment state" do
+      it "is set to pending" do
+        order.contents.resume
+        expect(shipment.state).to eq('pending')
+      end
+    end
+
+    describe "order.considered_risky" do
+      context "when not risky" do
+        it "is false" do
+          order.contents.resume
+          expect(order.considered_risky).to be_falsey
+        end
+      end
+
+      context "when risky" do
+        before do
+          order.payments.first.update_attributes!(cvv_response_message: 'fail')
+        end
+
+        it "is true" do
+          order.contents.resume
+          expect(order.considered_risky).to be_truthy
+        end
+      end
+    end
+  end
+
   describe "#empty" do
     let(:order) { stub_model(Spree::Order, item_count: 2) }
 
