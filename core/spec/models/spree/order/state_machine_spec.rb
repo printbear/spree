@@ -183,16 +183,4 @@ describe Spree::Order do
     end
   end
 
-
-  # Another regression test for #729
-  context "#resume" do
-    before do
-      order.stub :email => "user@spreecommerce.com"
-      order.stub :state => "canceled"
-      order.stub :allow_resume? => true
-
-      # Stubs method that cause unwanted side effects in this test
-      order.stub :has_available_shipment
-    end
-  end
 end

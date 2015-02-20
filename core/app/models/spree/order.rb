@@ -588,11 +588,6 @@ module Spree
         OrderMailer.cancel_email(self.id).deliver
       end
 
-      def after_resume
-        shipments.each { |shipment| shipment.resume! }
-        consider_risk
-      end
-
       def use_billing?
         @use_billing == true || @use_billing == 'true' || @use_billing == '1'
       end

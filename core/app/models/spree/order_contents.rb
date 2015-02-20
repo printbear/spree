@@ -99,6 +99,12 @@ module Spree
       order.cancel!
     end
 
+    def resume
+      order.resume!
+      order.shipments.each { |shipment| shipment.resume! }
+      order.consider_risk
+    end
+
     def advance
       while @order.next; end
     end
