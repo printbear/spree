@@ -342,6 +342,26 @@ describe Spree::Order do
       end
     end
 
+    context "no inventory units" do
+      before do
+        order.user = FactoryGirl.create(:user)
+        order.email = 'spree@example.com'
+        order.payments << FactoryGirl.create(:payment)
+        order.stub(payment_required?: true)
+        order.line_items << FactoryGirl.create(:line_item)
+
+        Spree::OrderUpdater.new(order).update
+        order.save!
+      end
+
+      it "does not allow order to complete" do
+        expect { order.complete! }.to raise_error Spree::LineItem::InsufficientStock
+
+        expect(order.state).to eq 'confirm'
+        expect(order.line_items.first.errors[:inventory]).to be_present
+      end
+    end
+
     context "default credit card" do
       before do
         order.user = FactoryGirl.create(:user)
@@ -352,6 +372,7 @@ describe Spree::Order do
         order.stub(payment_required?: true)
         order.stub(ensure_available_shipping_rates: true)
         order.line_items << FactoryGirl.create(:line_item)
+        order.line_items.each { |li| li.inventory_units.create! }
         Spree::OrderUpdater.new(order).update
 
         order.save!
@@ -376,12 +397,14 @@ describe Spree::Order do
         order.email = 'spree@example.org'
         payment = FactoryGirl.create(:payment)
         payment.stub(:process!).and_raise(Spree::Core::GatewayError.new('processing failed'))
+        order.line_items.each { |li| li.inventory_units.create! }
         order.payments << payment
 
         # make sure we will actually capture a payment
         order.stub(payment_required?: true)
         order.stub(ensure_available_shipping_rates: true)
         order.line_items << FactoryGirl.create(:line_item)
+        order.line_items.each { |li| li.inventory_units.create! }
         Spree::OrderUpdater.new(order).update
       end
 

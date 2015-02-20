@@ -556,6 +556,15 @@ module Spree
         end
       end
 
+      def ensure_inventory_units
+        if has_step?("delivery")
+          inventory_validator = Spree::Stock::InventoryValidator.new
+
+          errors = line_items.map { |line_item| inventory_validator.validate(line_item) }.compact
+          raise Spree::LineItem::InsufficientStock if errors.any?
+        end
+      end
+
       def validate_line_item_availability
         availability_validator = Spree::Stock::AvailabilityValidator.new
 
