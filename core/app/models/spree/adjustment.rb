@@ -27,6 +27,7 @@ module Spree
     belongs_to :order, :class_name => "Spree::Order"
     belongs_to :promotion_code, :class_name => 'Spree::PromotionCode'
 
+    validates :adjustable, presence: true
     validates :label, presence: true
     validates :amount, numericality: true
     validates :promotion_code, presence: true, if: :require_promotion_code?
