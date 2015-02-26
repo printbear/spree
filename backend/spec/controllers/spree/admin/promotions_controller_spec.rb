@@ -31,7 +31,7 @@ describe Spree::Admin::PromotionsController do
       end
 
       it "filters by code" do
-        spree_get :index, q: {code_cont: promotion1.code}
+        spree_get :index, q: {promotion_code_value_cont: promotion1.code}
         expect(assigns[:promotions].map(&:id)).to eq [promotion1.id]
       end
 
