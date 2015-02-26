@@ -22,6 +22,7 @@ module Spree
 
           if options[:create_order_if_necessary] and (@current_order.nil? or @current_order.completed?)
             @current_order = Spree::Order.new(currency: current_currency)
+            @current_order.last_ip_address = ip_address
             @current_order.user ||= try_spree_current_user
             # See issue #3346 for reasons why this line is here
             @current_order.created_by ||= try_spree_current_user
