@@ -33,12 +33,6 @@ describe "Adjustments" do
     click_link "Adjustments"
   end
 
-  after :each do
-    order.reload.all_adjustments.each do |adjustment|
-      expect(adjustment.order_id).to equal(order.id)
-    end
-  end
-
   context "admin managing adjustments" do
     it "should display the correct values for existing order adjustments" do
       within_row(1) do
@@ -64,6 +58,10 @@ describe "Adjustments" do
         click_button "Continue"
         page.should have_content("successfully created!")
         page.should have_content("Total: $90.00")
+
+        order.reload.all_adjustments.each do |adjustment|
+          expect(adjustment.order_id).to equal(order.id)
+        end
       end
     end
 
@@ -109,7 +107,7 @@ describe "Adjustments" do
       end
     end
   end
-  
+
   context "deleting an adjustment" do
     it "should not be possible if adjustment is closed" do
       within_row(1) do
