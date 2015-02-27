@@ -30,19 +30,29 @@ module Spree
 
       private
         def promotions
-          promo_table = Promotion.arel_table
-          join_table = Arel::Table.new(:spree_orders_promotions)
+          connected_order_promotions | sale_promotions
+        end
 
-          join_condition = promo_table.join(join_table, Arel::Nodes::OuterJoin).on(
-            promo_table[:id].eq(join_table[:promotion_id])
+        def connected_order_promotions
+          Promotion.active.includes(:promotion_rules).
+            joins(:order_promotions).
+            where(spree_orders_promotions: { order_id: order.id }).readonly(false).to_a
+        end
+
+        def sale_promotions
+          promo_table = Promotion.arel_table
+          code_table  = PromotionCode.arel_table
+
+          promotion_code_join = promo_table.join(code_table, Arel::Nodes::OuterJoin).on(
+            promo_table[:id].eq(code_table[:promotion_id])
           ).join_sources
 
           Promotion.active.includes(:promotion_rules).
-            joins(join_condition).
+            joins(promotion_code_join).
             where(
-              promo_table[:code].eq(nil).and(
+              code_table[:value].eq(nil).and(
                 promo_table[:path].eq(nil)
-              ).or(join_table[:order_id].eq(order.id))
+              )
             ).distinct
         end
     end
