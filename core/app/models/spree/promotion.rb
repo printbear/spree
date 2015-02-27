@@ -14,11 +14,12 @@ module Spree
     has_many :order_promotions, class_name: 'Spree::OrderPromotion'
     has_many :orders, through: :order_promotions
 
-    has_one :promotion_code, class_name: 'Spree::PromotionCode'
+    has_one :promotion_code, class_name: 'Spree::PromotionCode', inverse_of: :promotion
 
     accepts_nested_attributes_for :promotion_actions, :promotion_rules
 
     validates_associated :rules
+    validates_associated :promotion_code
 
     validates :name, presence: true
     validates :path, uniqueness: true, allow_blank: true
