@@ -139,23 +139,6 @@ describe Spree::Promotion do
 
   end
 
-  context "#usage_limit_exceeded" do
-    let(:promotable) { double('Promotable') }
-    it "should not have its usage limit exceeded with no usage limit" do
-      promotion.usage_limit = 0
-      promotion.usage_limit_exceeded?(promotable).should be false
-    end
-
-    it "should have its usage limit exceeded" do
-      promotion.usage_limit = 2
-      promotion.stub(:adjusted_credits_count => 2)
-      promotion.usage_limit_exceeded?(promotable).should be true
-
-      promotion.stub(:adjusted_credits_count => 3)
-      promotion.usage_limit_exceeded?(promotable).should be true
-    end
-  end
-
   context "#expired" do
     it "should not be exipired" do
       promotion.should_not be_expired
@@ -189,7 +172,7 @@ describe Spree::Promotion do
 
     it "should not be expired if usage limit is not exceeded" do
       promotion.usage_limit = 2
-      promotion.stub(:credits_count => 1)
+      promotion.stub(:usage_count => 1)
       promotion.should_not be_expired
     end
   end
@@ -232,7 +215,7 @@ describe Spree::Promotion do
     end
   end
 
-  context "#credits_count" do
+  context "#usage_count" do
     let!(:promotion) do
       create(
         :promotion,
@@ -259,43 +242,56 @@ describe Spree::Promotion do
 
     it "counts eligible adjustments" do
       adjustment.update_column(:eligible, true)
-      expect(promotion.credits_count).to eq(1)
+      expect(promotion.usage_count).to eq(1)
     end
 
     # Regression test for #4112
     it "does not count ineligible adjustments" do
       adjustment.update_column(:eligible, false)
-      expect(promotion.credits_count).to eq(0)
+      expect(promotion.usage_count).to eq(0)
     end
   end
 
   context "#eligible?" do
+    subject do
+      promotion.eligible?(promotable)
+    end
+
     let(:promotable) { create :order }
-    subject { promotion.eligible?(promotable) }
+
+    it { should be true }
+
     context "when promotion is expired" do
       before { promotion.expires_at = Time.now - 10.days }
       it { should be false }
     end
+
     context "when promotable is a Spree::LineItem" do
       let(:promotable) { create :line_item }
       let(:product) { promotable.product }
+
       before do
         product.promotionable = promotionable
       end
+
       context "and product is promotionable" do
         let(:promotionable) { true }
         it { should be true }
       end
+
       context "and product is not promotionable" do
         let(:promotionable) { false }
         it { should be false }
       end
     end
+
     context "when promotable is a Spree::Order" do
       let(:promotable) { create :order }
+
       context "and it is empty" do
         it { should be true }
       end
+
       context "and it contains items" do
         let!(:line_item) { create(:line_item, order: promotable) }
         let!(:line_item2) { create(:line_item, order: promotable) }
