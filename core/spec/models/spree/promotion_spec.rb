@@ -56,27 +56,29 @@ describe Spree::Promotion do
   end
 
   describe "#activate" do
+    let(:promotion) { create(:promotion) }
+
     before do
       @action1 = stub_model(Spree::PromotionAction, :perform => true)
       @action2 = stub_model(Spree::PromotionAction, :perform => true)
       promotion.promotion_actions = [@action1, @action2]
       promotion.created_at = 2.days.ago
 
-      @user = stub_model(Spree::LegacyUser, :email => "spree@example.com")
-      @order = stub_model(Spree::Order, :user => @user, :created_at => DateTime.now)
+      @user = create(:user)
+      @order = create(:order, user: @user, created_at: DateTime.now)
       @payload = { :order => @order, :user => @user }
     end
 
     it "should check path if present" do
       promotion.path = 'content/cvv'
       @payload[:path] = 'content/cvv'
-      @action1.should_receive(:perform).with(@payload)
-      @action2.should_receive(:perform).with(@payload)
+      expect(@action1).to receive(:perform).with(hash_including(@payload))
+      expect(@action2).to receive(:perform).with(hash_including(@payload))
       promotion.activate(@payload)
     end
 
     it "does not perform actions against an order in a finalized state" do
-      @action1.should_not_receive(:perform).with(@payload)
+      @action1.should_not_receive(:perform)
 
       @order.state = 'complete'
       promotion.activate(@payload)
@@ -89,7 +91,7 @@ describe Spree::Promotion do
     end
 
     it "does activate if newer then order" do
-      @action1.should_receive(:perform).with(@payload)
+      expect(@action1).to receive(:perform).with(hash_including(@payload))
       promotion.created_at = DateTime.now + 2
       expect(promotion.activate(@payload)).to be true
     end
@@ -110,7 +112,29 @@ describe Spree::Promotion do
           expect(promotion.orders).to be_empty
         end
       end
+      context "when the order is already associated" do
+        before do
+          expect(promotion.orders).to be_empty
+          expect(promotion.activate(@payload)).to be true
+          expect(promotion.orders.to_a).to eql [@order]
+        end
 
+        it "will not assign the order again" do
+          expect(promotion.activate(@payload)).to be true
+          expect(promotion.orders.reload.to_a).to eql [@order]
+        end
+      end
+
+    end
+
+    context "when there is a code" do
+      let(:promotion_code) { create(:promotion_code) }
+      let(:promotion) { promotion_code.promotion }
+
+      it "assigns the code" do
+        expect(promotion.activate(order: @order, promotion_code: promotion_code)).to be true
+        expect(promotion.order_promotions.map(&:promotion_code)).to eq [promotion_code]
+      end
     end
 
   end
