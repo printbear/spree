@@ -24,6 +24,7 @@ module Spree
     validates :name, presence: true
     validates :path, uniqueness: true, allow_blank: true
     validates :usage_limit, numericality: { greater_than: 0, allow_nil: true }
+    validates :per_code_usage_limit, numericality: { greater_than_or_equal_to: 0, allow_nil: true }
     validates :description, length: { maximum: 255 }
 
     before_save :normalize_blank_values
@@ -101,10 +102,10 @@ module Spree
     end
 
     # called anytime order.update! happens
-    # TODO: add specs for coupon_code usage limit
-    def eligible?(promotable)
+    def eligible?(promotable, promotion_code: nil)
       return false if expired?
       return false if usage_limit_exceeded?(promotable)
+      return false if promotion_code && promotion_code.usage_limit_exceeded?(promotable)
       return false if blacklisted?(promotable)
       !!eligible_rules(promotable, {})
     end
@@ -134,7 +135,6 @@ module Spree
     #
     # @param promotable object (e.g. order/line item/shipment)
     # @return true or false
-    # TODO: specs
     def usage_limit_exceeded?(promotable)
       # TODO: This logic appears to be wrong.
       # Currently if you have:
@@ -151,27 +151,16 @@ module Spree
     # Number of times the code has been used overall
     #
     # @return [Integer] usage count
-    # TODO: specs
     def usage_count
       adjustment_promotion_scope(Spree::Adjustment.eligible).count
-    end
-
-    # Number of times the code has been used for the given promotable
-    #
-    # @param promotable promotable object (e.g. order/line item/shipment)
-    # @return [Integer] usage count for this promotable
-    # TODO: specs
-    def usage_count_for(promotable)
-      adjustment_promotion_scope(promotable.adjustments).count
     end
 
     def used_by?(user, excluded_orders = [])
       orders.where.not(id: excluded_orders.map(&:id)).complete.where(user_id: user.id).exists?
     end
 
-    # TODO: specs
-    def line_item_actionable?(order, line_item)
-      if eligible?(order)
+    def line_item_actionable?(order, line_item, promotion_code: nil)
+      if eligible?(order, promotion_code: promotion_code)
         rules = eligible_rules(order)
         if rules.blank?
           true
@@ -223,6 +212,10 @@ module Spree
 
     def match_all?
       match_policy == 'all'
+    end
+
+    def usage_count_for(promotable)
+      adjustment_promotion_scope(promotable.adjustments).count
     end
 
     def build_code_with_base(base_code:, random_code_length: 6)
