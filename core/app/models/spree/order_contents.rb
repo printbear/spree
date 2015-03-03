@@ -155,6 +155,10 @@ module Spree
       )
     end
 
+    def refresh_shipment_rates
+      order.shipments.map(&:refresh_rates)
+    end
+
     private
       def order_updater
         @updater ||= OrderUpdater.new(order)

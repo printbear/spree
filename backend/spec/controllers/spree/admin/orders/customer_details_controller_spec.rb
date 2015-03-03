@@ -20,7 +20,7 @@ describe Spree::Admin::Orders::CustomerDetailsController, type: :controller do
       end
 
       it "does refresh the shipment rates with all shipping methods" do
-        expect(order).to receive(:refresh_shipment_rates)
+        expect(order.contents).to receive(:refresh_shipment_rates)
         attributes = { order_id: order.number, order: { email: "" } }
         spree_put :update, attributes
       end
@@ -60,10 +60,6 @@ describe Spree::Admin::Orders::CustomerDetailsController, type: :controller do
 
       context "not false guest checkout param" do
         it "does not attempt to associate the user" do
-          allow(order).to receive_messages(update_attributes: true,
-                                           next: false,
-                                           refresh_shipment_rates: true)
-
           expect(order.contents).not_to receive(:associate_user)
 
           attributes = {

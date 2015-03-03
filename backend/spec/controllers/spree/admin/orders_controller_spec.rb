@@ -91,13 +91,13 @@ describe Spree::Admin::OrdersController do
     context "#edit" do
       it "does not refresh rates if the order is complete" do
         order.stub :completed? => true
-        order.should_not_receive :refresh_shipment_rates
+        order.contents.should_not_receive :refresh_shipment_rates
         spree_get :edit, :id => order.number
       end
 
       it "does refresh the rates if the order is incomplete" do
         order.stub :completed? => false
-        order.should_receive :refresh_shipment_rates
+        order.contents.should_receive :refresh_shipment_rates
         spree_get :edit, :id => order.number
       end
     end

@@ -28,7 +28,7 @@ module Spree
 
             unless @order.completed?
               @order.next
-              @order.refresh_shipment_rates
+              @order.contents.refresh_shipment_rates
             end
 
             flash[:success] = Spree.t('customer_details_updated')
