@@ -78,7 +78,13 @@ describe Spree::CustomerReturn do
     let(:customer_return) { create(:customer_return, line_items_count: 2) }
 
     before do
-      Spree::ReturnItem.where(customer_return_id: customer_return.id).update_all(pre_tax_amount: pre_tax_amount, additional_tax_total: tax_amount)
+      Spree::ReturnItem.
+        where(customer_return_id: customer_return.id).
+        update_all(
+          pre_tax_amount: pre_tax_amount,
+          additional_tax_total: tax_amount,
+        )
+      customer_return.return_items.reload
     end
 
     subject { customer_return.total }
