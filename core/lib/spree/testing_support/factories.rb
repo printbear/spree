@@ -14,5 +14,4 @@ FactoryGirl.define do
   sequence(:random_string)      { Faker::Lorem.sentence }
   sequence(:random_description) { Faker::Lorem.paragraphs(1 + Kernel.rand(5)).join("\n") }
   sequence(:random_email)       { Faker::Internet.email }
-  sequence(:random_code)        { Faker::Lorem.characters(10) }
 end

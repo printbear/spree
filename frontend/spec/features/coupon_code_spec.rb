@@ -10,24 +10,21 @@ describe "Coupon code promotions", :js => true do
 
   context "visitor makes checkout as guest without registration" do
     def create_basic_coupon_promotion(code)
-      promotion = create(
-        :promotion,
-        name:       code.titleize,
-        code:       code,
-        starts_at:  1.day.ago,
-        expires_at: 1.day.from_now,
-      )
+      promotion = Spree::Promotion.create!(:name       => code.titleize,
+                                           :code       => code,
+                                           :starts_at  => 1.day.ago,
+                                           :expires_at => 1.day.from_now)
 
-      calculator = Spree::Calculator::FlatRate.new
-      calculator.preferred_amount = 10
+     calculator = Spree::Calculator::FlatRate.new
+     calculator.preferred_amount = 10
 
-      action = Spree::Promotion::Actions::CreateItemAdjustments.new
-      action.calculator = calculator
-      action.promotion = promotion
-      action.save
+     action = Spree::Promotion::Actions::CreateItemAdjustments.new
+     action.calculator = calculator
+     action.promotion = promotion
+     action.save
 
-      promotion.reload # so that promotion.actions is available
-    end
+     promotion.reload # so that promotion.actions is available
+   end
 
     let!(:promotion) { create_basic_coupon_promotion("onetwo") }
 
@@ -101,7 +98,8 @@ describe "Coupon code promotions", :js => true do
       end
 
       it "informs the user about a coupon code which has exceeded its usage" do
-        Spree::Promotion.any_instance.should_receive(:usage_limit_exceeded?).and_return(true)
+        promotion.update_column(:usage_limit, 5)
+        promotion.class.any_instance.stub(:credits_count => 10)
 
         fill_in "order_coupon_code", :with => "onetwo"
         click_button "Update"

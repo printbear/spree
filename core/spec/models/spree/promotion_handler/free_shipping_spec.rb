@@ -6,7 +6,7 @@ module Spree
       let(:order) { create(:order) }
       let(:shipment) { create(:shipment, order: order ) }
 
-      let(:promotion) { Promotion.create!(name: "Free Shipping") }
+      let(:promotion) { Promotion.create(name: "Free Shipping") }
       let(:calculator) { Calculator::FlatPercentItemTotal.new(preferred_flat_percent: 10) }
 
       subject { Spree::PromotionHandler::FreeShipping.new(order) }
@@ -22,7 +22,9 @@ module Spree
       end
 
       context "if promo has a code" do
-        let!(:promotion_code) { create(:promotion_code, promotion: promotion) }
+        before do
+          promotion.update_column(:code, "code")
+        end
 
         it "does not adjust the shipment" do
           expect {

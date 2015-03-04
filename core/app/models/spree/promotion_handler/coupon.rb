@@ -43,13 +43,13 @@ module Spree
       end
 
       def handle_present_promotion(promotion)
-        return promotion_usage_limit_exceeded if promotion.usage_limit_exceeded?(order) || promotion_code.usage_limit_exceeded?(order)
+        return promotion_usage_limit_exceeded if promotion.usage_limit_exceeded?(order)
         return promotion_applied if promotion_exists_on_order?(order, promotion)
-        return ineligible_for_this_order unless promotion.eligible?(order, promotion_code: promotion_code)
+        return ineligible_for_this_order unless promotion.eligible?(order)
 
         # If any of the actions for the promotion return `true`,
         # then result here will also be `true`.
-        result = promotion.activate(order: order, promotion_code: promotion_code)
+        result = promotion.activate(:order => order)
         if result
           determine_promotion_application_result
         else
@@ -75,7 +75,9 @@ module Spree
 
       def determine_promotion_application_result
         detector = lambda { |p|
-          p.source.promotion.codes.any? { |code| code.value == order.coupon_code.downcase }
+          if p.source.promotion.code
+            p.source.promotion.code.downcase == order.coupon_code.downcase
+          end
         }
 
         discount = order.line_item_adjustments.promotion.detect(&detector)

@@ -7,7 +7,7 @@ describe Spree::Admin::PromotionsController do
   let!(:promotion2) { create(:promotion, name: "name2", code: "code2", path: "path2") }
   let!(:category) { create :promotion_category }
 
-  describe "#index" do
+  context "#index" do
 
     it "succeeds" do
       spree_get :index
@@ -31,57 +31,13 @@ describe Spree::Admin::PromotionsController do
       end
 
       it "filters by code" do
-        spree_get :index, q: {codes_value_cont: promotion1.codes.first.value }
+        spree_get :index, q: {promotion_code_value_cont: promotion1.code}
         expect(assigns[:promotions].map(&:id)).to eq [promotion1.id]
       end
 
       it "filters by path" do
         spree_get :index, q: {path_cont: promotion1.path}
         expect(assigns[:promotions].map(&:id)).to eq [promotion1.id]
-      end
-    end
-  end
-
-  describe "#create" do
-    let(:params) { {promotion: {name: 'some promo'}} }
-
-    it "succeeds" do
-      expect {
-        spree_post :create, params
-      }.to change { Spree::Promotion.count }.by(1)
-    end
-
-    context "with one promo codes" do
-      let(:params) do
-        super().merge(bulk_base: 'abc', bulk_number: 1)
-      end
-
-      it "succeeds and creates one code" do
-        expect {
-          expect {
-            spree_post :create, params
-          }.to change { Spree::Promotion.count }.by(1)
-        }.to change { Spree::PromotionCode.count }.by(1)
-
-        expect(assigns(:promotion).codes.first.value).to eq ('abc')
-      end
-    end
-
-    context "with multiple promo codes" do
-      let(:params) do
-        super().merge(bulk_base: 'abc', bulk_number: 2)
-      end
-
-      before { srand 123 }
-
-      it "succeeds and creates multiple codes" do
-        expect {
-          expect {
-            spree_post :create, params
-          }.to change { Spree::Promotion.count }.by(1)
-        }.to change { Spree::PromotionCode.count }.by(2)
-
-        expect(assigns(:promotion).codes.map(&:value).sort).to eq ["abc_kzwbar", "abc_nccgrt"]
       end
     end
   end

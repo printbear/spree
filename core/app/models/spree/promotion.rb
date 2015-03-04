@@ -14,20 +14,21 @@ module Spree
     has_many :order_promotions, class_name: 'Spree::OrderPromotion'
     has_many :orders, through: :order_promotions
 
-    has_many :codes, class_name: 'Spree::PromotionCode', inverse_of: :promotion
-    alias_method :promotion_codes, :codes
+    has_one :promotion_code, class_name: 'Spree::PromotionCode', inverse_of: :promotion
 
     accepts_nested_attributes_for :promotion_actions, :promotion_rules
 
     validates_associated :rules
+    validates_associated :promotion_code
 
     validates :name, presence: true
     validates :path, uniqueness: true, allow_blank: true
     validates :usage_limit, numericality: { greater_than: 0, allow_nil: true }
-    validates :per_code_usage_limit, numericality: { greater_than_or_equal_to: 0, allow_nil: true }
     validates :description, length: { maximum: 255 }
 
     before_save :normalize_blank_values
+
+    after_save :save_promotion_code
 
     # temporary code. remove after the column is dropped from the db.
     def columns
@@ -47,17 +48,17 @@ module Spree
       order && !UNACTIVATABLE_ORDER_STATES.include?(order.state)
     end
 
+    # Temporarily keeping the same interface for promotion codes while using
+    # promotion_codes table.
     def code
-      raise 'Attempted to call code on a Spree::Promotion. Promotions are now tied to multiple code records'
+      promotion_code.try!(:value)
     end
-
     def code=(val)
-      raise 'Attempted to call code= on a Spree::Promotion. Promotions are now tied to multiple code records'
-    end
-
-    def as_json(options={})
-      options[:except] ||= :code
-      super
+      if promotion_code
+        promotion_code.value = val
+      else
+        build_promotion_code(value: val) if val.present?
+      end
     end
 
     def expired?
@@ -69,17 +70,11 @@ module Spree
         (expires_at.nil? || expires_at > Time.now)
     end
 
-    def activate(order:, line_item: nil, user: nil, path: nil, promotion_code: nil)
+    def activate(payload)
+      order = payload[:order]
       return unless self.class.order_activatable?(order)
 
-      payload = {
-        order: order,
-        promotion: self,
-        line_item: line_item,
-        user: user,
-        path: path,
-        promotion_code: promotion_code,
-      }
+      payload[:promotion] = self
 
       # Track results from actions to see if any action has been taken.
       # Actions should return nil/false if no action has been taken.
@@ -91,22 +86,18 @@ module Spree
       action_taken = results.include?(true)
 
       if action_taken
-        # connect to the order
-        order_promotions.find_or_create_by!(
-          order_id: order.id,
-          promotion_code_id: promotion_code.try!(:id),
-        )
+      # connect to the order
+      # create the join_table entry.
+        self.orders << order
+        self.save
       end
 
       return action_taken
     end
 
     # called anytime order.update! happens
-    def eligible?(promotable, promotion_code: nil)
-      return false if expired?
-      return false if usage_limit_exceeded?(promotable)
-      return false if promotion_code && promotion_code.usage_limit_exceeded?(promotable)
-      return false if blacklisted?(promotable)
+    def eligible?(promotable)
+      return false if expired? || usage_limit_exceeded?(promotable) || blacklisted?(promotable)
       !!eligible_rules(promotable, {})
     end
 
@@ -131,36 +122,28 @@ module Spree
       end
     end
 
-    # Whether the given promotable would violate the usage restrictions
-    #
-    # @param promotable object (e.g. order/line item/shipment)
-    # @return true or false
     def usage_limit_exceeded?(promotable)
-      # TODO: This logic appears to be wrong.
-      # Currently if you have:
-      # - 2 different line item level actions on a promotion
-      # - 2 line items in an order
-      # Then using the promo on that order will create 4 adjustments and count as 4
-      # usages.
-      # See also PromotionCode#usage_limit_exceeded?
-      if usage_limit
-        usage_count - usage_count_for(promotable) >= usage_limit
-      end
+      usage_limit.present? && usage_limit > 0 && adjusted_credits_count(promotable) >= usage_limit
     end
 
-    # Number of times the code has been used overall
-    #
-    # @return [Integer] usage count
-    def usage_count
-      adjustment_promotion_scope(Spree::Adjustment.eligible).count
+    def adjusted_credits_count(promotable)
+      credits_count - promotable.adjustments.promotion.where(:source_id => actions.pluck(:id)).count
+    end
+
+    def credits
+      Adjustment.eligible.promotion.where(source_id: actions.map(&:id))
+    end
+
+    def credits_count
+      credits.count
     end
 
     def used_by?(user, excluded_orders = [])
       orders.where.not(id: excluded_orders.map(&:id)).complete.where(user_id: user.id).exists?
     end
 
-    def line_item_actionable?(order, line_item, promotion_code: nil)
-      if eligible?(order, promotion_code: promotion_code)
+    def line_item_actionable?(order, line_item)
+      if eligible? order
         rules = eligible_rules(order)
         if rules.blank?
           true
@@ -171,23 +154,6 @@ module Spree
         end
       else
         false
-      end
-    end
-
-    # Build promo codes. If number_of_codes is great than one then generate
-    # multiple codes by adding a random suffix to each code.
-    #
-    # @param base_code [String] When number_of_codes=1 this is the code. When
-    #   number_of_codes > 1 it is the base of the generated codes.
-    # @param number_of_codes [Integer] Number of codes to generate
-    # @param usage_limit [Integer] Usage limit for each code
-    def build_promotion_codes(base_code:, number_of_codes:)
-      if number_of_codes == 1
-        codes.build(value: base_code)
-      elsif number_of_codes > 1
-        number_of_codes.times do
-          build_code_with_base(base_code: base_code)
-        end
       end
     end
 
@@ -202,30 +168,16 @@ module Spree
       end
     end
 
-    def adjustment_promotion_scope(adjustment_scope)
-      adjustment_scope.promotion.where(source_id: actions.map(&:id))
-    end
-
     def normalize_blank_values
       self[:path] = nil if self[:path].blank?
     end
 
+    def save_promotion_code
+      promotion_code.save! if promotion_code.present?
+    end
+
     def match_all?
       match_policy == 'all'
-    end
-
-    def usage_count_for(promotable)
-      adjustment_promotion_scope(promotable.adjustments).count
-    end
-
-    def build_code_with_base(base_code:, random_code_length: 6)
-      code_with_entropy = "#{base_code}_#{Array.new(random_code_length){ ('A'..'Z').to_a.sample }.join}"
-
-      if Spree::PromotionCode.where(value: code_with_entropy).exists?
-        build_code_with_base(base_code)
-      else
-        codes.build(value: code_with_entropy)
-      end
     end
   end
 end
