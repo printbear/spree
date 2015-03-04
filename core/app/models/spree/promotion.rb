@@ -24,6 +24,7 @@ module Spree
     validates :name, presence: true
     validates :path, uniqueness: true, allow_blank: true
     validates :usage_limit, numericality: { greater_than: 0, allow_nil: true }
+    validates :per_code_usage_limit, numericality: { greater_than_or_equal_to: 0, allow_nil: true }
     validates :description, length: { maximum: 255 }
 
     before_save :normalize_blank_values
@@ -101,8 +102,11 @@ module Spree
     end
 
     # called anytime order.update! happens
-    def eligible?(promotable)
-      return false if expired? || usage_limit_exceeded?(promotable) || blacklisted?(promotable)
+    def eligible?(promotable, promotion_code: nil)
+      return false if expired?
+      return false if usage_limit_exceeded?(promotable)
+      return false if promotion_code && promotion_code.usage_limit_exceeded?(promotable)
+      return false if blacklisted?(promotable)
       !!eligible_rules(promotable, {})
     end
 
@@ -127,28 +131,36 @@ module Spree
       end
     end
 
+    # Whether the given promotable would violate the usage restrictions
+    #
+    # @param promotable object (e.g. order/line item/shipment)
+    # @return true or false
     def usage_limit_exceeded?(promotable)
-      usage_limit.present? && usage_limit > 0 && adjusted_credits_count(promotable) >= usage_limit
+      # TODO: This logic appears to be wrong.
+      # Currently if you have:
+      # - 2 different line item level actions on a promotion
+      # - 2 line items in an order
+      # Then using the promo on that order will create 4 adjustments and count as 4
+      # usages.
+      # See also PromotionCode#usage_limit_exceeded?
+      if usage_limit
+        usage_count - usage_count_for(promotable) >= usage_limit
+      end
     end
 
-    def adjusted_credits_count(promotable)
-      credits_count - promotable.adjustments.promotion.where(:source_id => actions.pluck(:id)).count
-    end
-
-    def credits
-      Adjustment.eligible.promotion.where(source_id: actions.map(&:id))
-    end
-
-    def credits_count
-      credits.count
+    # Number of times the code has been used overall
+    #
+    # @return [Integer] usage count
+    def usage_count
+      adjustment_promotion_scope(Spree::Adjustment.eligible).count
     end
 
     def used_by?(user, excluded_orders = [])
       orders.where.not(id: excluded_orders.map(&:id)).complete.where(user_id: user.id).exists?
     end
 
-    def line_item_actionable?(order, line_item)
-      if eligible? order
+    def line_item_actionable?(order, line_item, promotion_code: nil)
+      if eligible?(order, promotion_code: promotion_code)
         rules = eligible_rules(order)
         if rules.blank?
           true
@@ -190,12 +202,20 @@ module Spree
       end
     end
 
+    def adjustment_promotion_scope(adjustment_scope)
+      adjustment_scope.promotion.where(source_id: actions.map(&:id))
+    end
+
     def normalize_blank_values
       self[:path] = nil if self[:path].blank?
     end
 
     def match_all?
       match_policy == 'all'
+    end
+
+    def usage_count_for(promotable)
+      adjustment_promotion_scope(promotable.adjustments).count
     end
 
     def build_code_with_base(base_code:, random_code_length: 6)
