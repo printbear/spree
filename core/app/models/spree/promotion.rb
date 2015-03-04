@@ -14,12 +14,12 @@ module Spree
     has_many :order_promotions, class_name: 'Spree::OrderPromotion'
     has_many :orders, through: :order_promotions
 
-    has_one :promotion_code, class_name: 'Spree::PromotionCode', inverse_of: :promotion
+    has_many :codes, class_name: 'Spree::PromotionCode', inverse_of: :promotion
+    alias_method :promotion_codes, :codes
 
     accepts_nested_attributes_for :promotion_actions, :promotion_rules
 
     validates_associated :rules
-    validates_associated :promotion_code
 
     validates :name, presence: true
     validates :path, uniqueness: true, allow_blank: true
@@ -27,8 +27,6 @@ module Spree
     validates :description, length: { maximum: 255 }
 
     before_save :normalize_blank_values
-
-    after_save :save_promotion_code
 
     # temporary code. remove after the column is dropped from the db.
     def columns
@@ -48,17 +46,17 @@ module Spree
       order && !UNACTIVATABLE_ORDER_STATES.include?(order.state)
     end
 
-    # Temporarily keeping the same interface for promotion codes while using
-    # promotion_codes table.
     def code
-      promotion_code.try!(:value)
+      raise 'Attempted to call code on a Spree::Promotion. Promotions are now tied to multiple code records'
     end
+
     def code=(val)
-      if promotion_code
-        promotion_code.value = val
-      else
-        build_promotion_code(value: val) if val.present?
-      end
+      raise 'Attempted to call code= on a Spree::Promotion. Promotions are now tied to multiple code records'
+    end
+
+    def as_json(options={})
+      options[:except] ||= :code
+      super
     end
 
     def expired?
@@ -70,11 +68,17 @@ module Spree
         (expires_at.nil? || expires_at > Time.now)
     end
 
-    def activate(payload)
-      order = payload[:order]
+    def activate(order:, line_item: nil, user: nil, path: nil, promotion_code: nil)
       return unless self.class.order_activatable?(order)
 
-      payload[:promotion] = self
+      payload = {
+        order: order,
+        promotion: self,
+        line_item: line_item,
+        user: user,
+        path: path,
+        promotion_code: promotion_code,
+      }
 
       # Track results from actions to see if any action has been taken.
       # Actions should return nil/false if no action has been taken.
@@ -86,10 +90,11 @@ module Spree
       action_taken = results.include?(true)
 
       if action_taken
-      # connect to the order
-      # create the join_table entry.
-        self.orders << order
-        self.save
+        # connect to the order
+        order_promotions.find_or_create_by!(
+          order_id: order.id,
+          promotion_code_id: promotion_code.try!(:id),
+        )
       end
 
       return action_taken
@@ -157,6 +162,23 @@ module Spree
       end
     end
 
+    # Build promo codes. If number_of_codes is great than one then generate
+    # multiple codes by adding a random suffix to each code.
+    #
+    # @param base_code [String] When number_of_codes=1 this is the code. When
+    #   number_of_codes > 1 it is the base of the generated codes.
+    # @param number_of_codes [Integer] Number of codes to generate
+    # @param usage_limit [Integer] Usage limit for each code
+    def build_promotion_codes(base_code:, number_of_codes:)
+      if number_of_codes == 1
+        codes.build(value: base_code)
+      elsif number_of_codes > 1
+        number_of_codes.times do
+          build_code_with_base(base_code: base_code)
+        end
+      end
+    end
+
     private
     def blacklisted?(promotable)
       case promotable
@@ -172,12 +194,18 @@ module Spree
       self[:path] = nil if self[:path].blank?
     end
 
-    def save_promotion_code
-      promotion_code.save! if promotion_code.present?
-    end
-
     def match_all?
       match_policy == 'all'
+    end
+
+    def build_code_with_base(base_code:, random_code_length: 6)
+      code_with_entropy = "#{base_code}_#{Array.new(random_code_length){ ('A'..'Z').to_a.sample }.join}"
+
+      if Spree::PromotionCode.where(value: code_with_entropy).exists?
+        build_code_with_base(base_code)
+      else
+        codes.build(value: code_with_entropy)
+      end
     end
   end
 end
