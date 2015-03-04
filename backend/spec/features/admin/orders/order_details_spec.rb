@@ -490,6 +490,12 @@ describe "Order Details", js: true do
       can [:admin, :manage, :read, :ship], Spree::Shipment
     end
 
+    before do
+      allow(Spree.user_class).to receive(:find_by).
+                                   with(hash_including(:spree_api_key)).
+                                   and_return(Spree.user_class.new)
+    end
+
     it 'should not display order tabs or edit buttons without ability' do
       Spree::Admin::BaseController.any_instance.stub(:spree_current_user).and_return(nil)
       visit spree.edit_admin_order_path(order)
