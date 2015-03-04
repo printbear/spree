@@ -101,7 +101,7 @@ describe "Orders Listing" do
       end
 
       it "only shows the orders with the selected promotion" do
-        fill_in "q_promotions_promotion_code_value_cont", with: promotion.code
+        fill_in "q_promotions_codes_value_cont", with: promotion.codes.first.value
         click_icon :search
         within_row(1) { page.should have_content("R100") }
         within("table#listing_orders") { page.should_not have_content("R200") }

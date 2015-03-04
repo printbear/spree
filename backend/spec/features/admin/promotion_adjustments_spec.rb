@@ -12,7 +12,8 @@ describe "Promotion Adjustments" do
 
     it "should allow an admin to create a flat rate discount coupon promo" do
       fill_in "Name", :with => "Promotion"
-      fill_in "Code", :with => "order"
+      fill_in "bulk_base", :with => "order"
+      fill_in "bulk_number", :with => "1"
       click_button "Create"
       page.should have_content("Editing Promotion")
 
@@ -31,7 +32,7 @@ describe "Promotion Adjustments" do
       within('#actions_container') { click_button "Update" }
 
       promotion = Spree::Promotion.find_by_name("Promotion")
-      promotion.code.should == "order"
+      promotion.codes.first.value.should == "order"
 
       first_rule = promotion.rules.first
       first_rule.class.should == Spree::Promotion::Rules::ItemTotal
@@ -46,8 +47,9 @@ describe "Promotion Adjustments" do
 
     it "should allow an admin to create a single user coupon promo with flat rate discount" do
       fill_in "Name", :with => "Promotion"
-      fill_in "Usage Limit", :with => "1"
-      fill_in "Code", :with => "single_use"
+      fill_in "promotion[usage_limit]", :with => "1"
+      fill_in "bulk_base", :with => "single_use"
+      fill_in "bulk_number", :with => "1"
       click_button "Create"
       page.should have_content("Editing Promotion")
 
@@ -60,7 +62,7 @@ describe "Promotion Adjustments" do
 
       promotion = Spree::Promotion.find_by_name("Promotion")
       promotion.usage_limit.should == 1
-      promotion.code.should == "single_use"
+      promotion.codes.first.value.should == "single_use"
 
       first_action = promotion.actions.first
       first_action.class.should == Spree::Promotion::Actions::CreateAdjustment
@@ -88,7 +90,7 @@ describe "Promotion Adjustments" do
       within('#actions_container') { click_button "Update" }
 
       promotion = Spree::Promotion.find_by_name("Promotion")
-      promotion.code.should be_blank
+      promotion.codes.first.should be_nil
 
       first_rule = promotion.rules.first
       first_rule.class.should == Spree::Promotion::Rules::ItemTotal
@@ -121,7 +123,7 @@ describe "Promotion Adjustments" do
       within('#actions_container') { click_button "Update" }
 
       promotion = Spree::Promotion.find_by_name("Promotion")
-      promotion.code.should be_blank
+      promotion.codes.first.should be_nil
 
       first_rule = promotion.rules.first
       first_rule.class.should == Spree::Promotion::Rules::Product
@@ -150,7 +152,7 @@ describe "Promotion Adjustments" do
       within('#actions_container') { click_button "Update" }
 
       promotion = Spree::Promotion.find_by_name("Promotion")
-      promotion.code.should be_blank
+      promotion.codes.first.value.should be_blank
 
       first_rule = promotion.rules.first
       first_rule.class.should == Spree::Promotion::Rules::ItemTotal
@@ -176,7 +178,7 @@ describe "Promotion Adjustments" do
 
       promotion = Spree::Promotion.find_by_name("Promotion")
       promotion.path.should == "content/cvv"
-      promotion.code.should be_blank
+      promotion.codes.first.should be_nil
       promotion.rules.should be_blank
 
       first_action = promotion.actions.first
