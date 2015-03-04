@@ -2,8 +2,8 @@ jQuery ($) ->
   # Payment model
   class Payment
     constructor: (id) ->
-      @url  = Spree.url("#{Spree.routes.payments_api}/#{id}.json")
-      @json = $.getJSON @url.toString(), (data) =>
+      @url  = "#{Spree.routes.payments_api}/#{id}.json"
+      @json = Spree.getJSON @url, (data) =>
         @data = data
 
     if_pending: (callback) ->
@@ -11,9 +11,9 @@ jQuery ($) ->
         callback() if data.state is 'pending'
 
     update: (attributes, success) ->
-      jqXHR = $.ajax
+      jqXHR = Spree.ajax
         type: 'PUT'
-        url:  @url.toString()
+        url:  @url
         data: { payment: attributes }
       jqXHR.done (data) =>
         @data = data

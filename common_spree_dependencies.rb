@@ -31,7 +31,7 @@ group :test do
   gem 'selenium-webdriver', '~> 2.35'
   gem 'simplecov'
   gem 'webmock', '1.8.11'
-  gem 'poltergeist', '1.5.0'
+  gem 'poltergeist'
   gem 'timecop'
   gem 'with_model'
 end

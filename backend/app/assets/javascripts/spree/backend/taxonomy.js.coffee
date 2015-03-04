@@ -8,12 +8,11 @@ handle_move = (e, data) ->
   node = data.rslt.o
   new_parent = data.rslt.np
 
-  url = Spree.url(base_url).clone()
-  url.setPath url.path() + '/' + node.prop("id")
-  $.ajax
+  url = "#{base_url}/#{node.prop("id")}"
+  Spree.ajax
     type: "POST",
     dataType: "json",
-    url: url.toString(),
+    url: url,
     data: ({_method: "put", "taxon[parent_id]": new_parent.prop("id"), "taxon[child_index]": position }),
     error: handle_ajax_error
 
@@ -26,7 +25,7 @@ handle_create = (e, data) ->
   position = data.rslt.position
   new_parent = data.rslt.parent
 
-  $.ajax
+  Spree.ajax
     type: "POST",
     dataType: "json",
     url: base_url.toString(),
@@ -40,27 +39,25 @@ handle_rename = (e, data) ->
   node = data.rslt.obj
   name = data.rslt.new_name
 
-  url = Spree.url(base_url).clone()
-  url.setPath(url.path() + '/' + node.prop("id"))
+  url = "#{base_url}/#{node.prop("id")}"
 
-  $.ajax
+  Spree.ajax
     type: "POST",
     dataType: "json",
-    url: url.toString(),
+    url: url,
     data: {_method: "put", "taxon[name]": name },
     error: handle_ajax_error
 
 handle_delete = (e, data) ->
   last_rollback = data.rlbk
   node = data.rslt.obj
-  delete_url = base_url.clone()
-  delete_url.setPath delete_url.path() + '/' + node.prop("id")
+  delete_url = "#{base_url}/#{node.prop("id")}"
   jConfirm Spree.translations.are_you_sure_delete, Spree.translations.confirm_delete, (r) ->
     if r
-      $.ajax
+      Spree.ajax
         type: "POST",
         dataType: "json",
-        url: delete_url.toString(),
+        url: delete_url,
         data: {_method: "delete"},
         error: handle_ajax_error
     else
@@ -71,10 +68,10 @@ root = exports ? this
 root.setup_taxonomy_tree = (taxonomy_id) ->
   if taxonomy_id != undefined
     # this is defined within admin/taxonomies/edit
-    root.base_url = Spree.url(Spree.routes.taxonomy_taxons_path)
+    root.base_url = Spree.routes.taxonomy_taxons_path
 
-    $.ajax
-      url: Spree.url(base_url.path().replace("/taxons", "/jstree")).toString(),
+    Spree.ajax
+      url: base_url.replace("/taxons", "/jstree"),
       success: (taxonomy) ->
         last_rollback = null
 
@@ -83,10 +80,10 @@ root.setup_taxonomy_tree = (taxonomy_id) ->
             data: taxonomy,
             ajax:
               url: (e) ->
-                Spree.url(base_url.path() + '/' + e.prop('id') + '/jstree').toString()
+                "#{base_url}/#{e.prop('id')}/jstree"
           themes:
             theme: "apple",
-            url: Spree.url(Spree.routes.jstree_theme_path)
+            url: Spree.routes.jstree_theme_path
           strings:
             new_node: new_taxon,
             loading: Spree.translations.loading + "..."

@@ -1,13 +1,13 @@
 $(@).ready( ->
   $('[data-hook=adjustments_new_coupon_code] #add_coupon_code').click ->
     return if $("#coupon_code").val().length == 0
-    $.ajax
+    Spree.ajax
       type: 'PUT'
-      url: Spree.url(Spree.routes.orders_api + '/' + order_number + '/apply_coupon_code.json');
+      url: Spree.routes.orders_api + '/' + order_number + '/apply_coupon_code.json'
       data:
         coupon_code: $("#coupon_code").val()
       success: ->
-        window.location.reload();
+        window.location.reload()
       error: (msg) ->
         if msg.responseJSON["error"]
           show_flash 'error', msg.responseJSON["error"]

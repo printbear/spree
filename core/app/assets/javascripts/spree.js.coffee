@@ -7,6 +7,8 @@ class window.Spree
   # Uses the JSUri library from here: https://code.google.com/p/jsuri/
   # Thanks to Jake Moffat for the suggestion: https://twitter.com/jakeonrails/statuses/321776992221544449
   @url: (uri, query) ->
+    if Spree.env == 'development'
+      console.warn 'Spree.url is deprecated, please use Spree.ajax for your request instead.'
     if uri.path == undefined
       uri = new Uri(uri)
     if query
@@ -20,21 +22,36 @@ class window.Spree
   @uri: (uri, query) ->
     url(uri, query)
 
-  # This function automatically appends the API token
-  # for the user to the end of any URL.
-  # Immediately after, this string is then passed to jQuery.ajax.
+  # These functions (Spree.ajax, Spree.getJSON) automatically add the token as a request header.
   #
-  # ajax works in two ways in jQuery:
+  # Spree.ajax works in two ways to support common jQuery syntax:
   #
-  # $.ajax("url", {settings: 'go here'})
+  # Spree.ajax("url", {settings: 'go here'})
   # or:
-  # $.ajax({url: "url", settings: 'go here'})
+  # Spree.ajax({url: "url", settings: 'go here'})
   #
-  # This function will support both of these calls.
+  # Spree.getJSON has the same method signature as $.getJSON
   @ajax: (url_or_settings, settings) ->
+    url = undefined
+    options = undefined
     if (typeof(url_or_settings) == "string")
-      $.ajax(Spree.url(url_or_settings).toString(), settings)
+      url = url_or_settings
+      options = settings
     else
       url = url_or_settings['url']
       delete url_or_settings['url']
-      $.ajax(Spree.url(url).toString(), url_or_settings)
+      options = url_or_settings
+
+    options = $.extend(options, { headers: { "X-Spree-Token": Spree.api_key } })
+    $.ajax(url, options)
+
+  @getJSON: (url, data, success) ->
+    if typeof data is 'function'
+      success = data
+      data = undefined
+    @ajax(
+      dataType: "json",
+      url: url,
+      data: data,
+      success: success
+    )

@@ -52,18 +52,15 @@ Spree.onPayment = () ->
         else
           coupon_status = $("#coupon_status")
 
-        url = Spree.url(Spree.routes.apply_coupon_code(Spree.current_order_id),
-          {
+        coupon_status.removeClass()
+        Spree.ajax({
+          async: false,
+          method: "PUT",
+          url: Spree.routes.apply_coupon_code(Spree.current_order_id),
+          data: {
             order_token: Spree.current_order_token,
             coupon_code: coupon_code
           }
-        )
-
-        coupon_status.removeClass();
-        $.ajax({
-          async: false,
-          method: "PUT",
-          url: url,
           success: (data) ->
             coupon_code_field.val('')
             coupon_status.addClass("success").html("Coupon code applied successfully.")

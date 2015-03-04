@@ -18,6 +18,7 @@ $.fn.productAutocomplete = function (options) {
     ajax: {
       url: Spree.routes.product_search,
       datatype: 'json',
+      headers: { "X-Spree-Token": Spree.api_key },
       data: function (term, page) {
         return {
           q: {
