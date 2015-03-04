@@ -56,27 +56,29 @@ describe Spree::Promotion do
   end
 
   describe "#activate" do
+    let(:promotion) { create(:promotion) }
+
     before do
       @action1 = stub_model(Spree::PromotionAction, :perform => true)
       @action2 = stub_model(Spree::PromotionAction, :perform => true)
       promotion.promotion_actions = [@action1, @action2]
       promotion.created_at = 2.days.ago
 
-      @user = stub_model(Spree::LegacyUser, :email => "spree@example.com")
-      @order = stub_model(Spree::Order, :user => @user, :created_at => DateTime.now)
+      @user = create(:user)
+      @order = create(:order, user: @user, created_at: DateTime.now)
       @payload = { :order => @order, :user => @user }
     end
 
     it "should check path if present" do
       promotion.path = 'content/cvv'
       @payload[:path] = 'content/cvv'
-      @action1.should_receive(:perform).with(@payload)
-      @action2.should_receive(:perform).with(@payload)
+      expect(@action1).to receive(:perform).with(hash_including(@payload))
+      expect(@action2).to receive(:perform).with(hash_including(@payload))
       promotion.activate(@payload)
     end
 
     it "does not perform actions against an order in a finalized state" do
-      @action1.should_not_receive(:perform).with(@payload)
+      @action1.should_not_receive(:perform)
 
       @order.state = 'complete'
       promotion.activate(@payload)
@@ -89,7 +91,7 @@ describe Spree::Promotion do
     end
 
     it "does activate if newer then order" do
-      @action1.should_receive(:perform).with(@payload)
+      expect(@action1).to receive(:perform).with(hash_including(@payload))
       promotion.created_at = DateTime.now + 2
       expect(promotion.activate(@payload)).to be true
     end
@@ -110,25 +112,88 @@ describe Spree::Promotion do
           expect(promotion.orders).to be_empty
         end
       end
+      context "when the order is already associated" do
+        before do
+          expect(promotion.orders).to be_empty
+          expect(promotion.activate(@payload)).to be true
+          expect(promotion.orders.to_a).to eql [@order]
+        end
+
+        it "will not assign the order again" do
+          expect(promotion.activate(@payload)).to be true
+          expect(promotion.orders.reload.to_a).to eql [@order]
+        end
+      end
 
     end
 
+    context "when there is a code" do
+      let(:promotion_code) { create(:promotion_code) }
+      let(:promotion) { promotion_code.promotion }
+
+      it "assigns the code" do
+        expect(promotion.activate(order: @order, promotion_code: promotion_code)).to be true
+        expect(promotion.order_promotions.map(&:promotion_code)).to eq [promotion_code]
+      end
+    end
   end
 
-  context "#usage_limit_exceeded" do
-    let(:promotable) { double('Promotable') }
-    it "should not have its usage limit exceeded with no usage limit" do
-      promotion.usage_limit = 0
-      promotion.usage_limit_exceeded?(promotable).should be false
+  context "#usage_limit_exceeded?" do
+    let(:promotable) { create(:order) }
+
+    context "there is a usage limit set" do
+      let(:promotion) { create(:promotion, :with_order_adjustment, usage_limit: usage_limit) }
+
+      let!(:existing_adjustment) do
+        Spree::Adjustment.create!(label: 'Adjustment', amount: 1, source: promotion.actions.first)
+      end
+
+      context "the usage limit is not exceeded" do
+        let(:usage_limit) { 10 }
+
+        it "returns false" do
+          expect(promotion.usage_limit_exceeded?(promotable)).to be_falsey
+        end
+      end
+
+      context "the usage limit is exceeded" do
+        let(:usage_limit) { 1 }
+
+        context "for a different order" do
+          it "returns true" do
+            expect(promotion.usage_limit_exceeded?(promotable)).to be(true)
+          end
+        end
+
+        context "for the same order" do
+          let!(:existing_adjustment) do
+            Spree::Adjustment.create!(adjustable: promotable, label: 'Adjustment', amount: 1, source: promotion.actions.first)
+          end
+
+          it "returns false" do
+            expect(promotion.usage_limit_exceeded?(promotable)).to be(false)
+          end
+        end
+      end
     end
 
-    it "should have its usage limit exceeded" do
-      promotion.usage_limit = 2
-      promotion.stub(:adjusted_credits_count => 2)
-      promotion.usage_limit_exceeded?(promotable).should be true
+    context "there is no usage limit set" do
+      it "returns false" do
+        promotion.usage_limit = nil
+        expect(promotion.usage_limit_exceeded?(promotable)).to be_falsey
+      end
+    end
+  end
 
-      promotion.stub(:adjusted_credits_count => 3)
-      promotion.usage_limit_exceeded?(promotable).should be true
+  context "#usage_count" do
+    let(:promotable) { create(:order) }
+    let(:promotion) { create(:promotion, :with_order_adjustment) }
+    let!(:adjustment1) { Spree::Adjustment.create!(adjustable: promotable, label: 'Adjustment', amount: 1, source: promotion.actions.first) }
+    let!(:adjustment2) { Spree::Adjustment.create!(adjustable: promotable, label: 'Adjustment', amount: 1, source: promotion.actions.first) }
+
+    it "counts the eligible adjustments that have used this promotion" do
+      adjustment2.update_columns(eligible: false)
+      expect(promotion.usage_count).to eq 1
     end
   end
 
@@ -160,12 +225,6 @@ describe Spree::Promotion do
     it "should not be expired if current time is within starts_at and expires_at range" do
       promotion.starts_at = Time.now - 1.day
       promotion.expires_at = Time.now + 1.day
-      promotion.should_not be_expired
-    end
-
-    it "should not be expired if usage limit is not exceeded" do
-      promotion.usage_limit = 2
-      promotion.stub(:credits_count => 1)
       promotion.should_not be_expired
     end
   end
@@ -208,13 +267,13 @@ describe Spree::Promotion do
     end
   end
 
-  context "#credits_count" do
+  context "#usage_count" do
     let!(:promotion) do
-      promotion = Spree::Promotion.new
-      promotion.name = "Foo"
-      promotion.code = "XXX"
-      calculator = Spree::Calculator::FlatRate.new
-      promotion.tap(&:save)
+      create(
+        :promotion,
+        name: "Foo",
+        code: "XXX",
+      )
     end
 
     let!(:action) do
@@ -235,43 +294,82 @@ describe Spree::Promotion do
 
     it "counts eligible adjustments" do
       adjustment.update_column(:eligible, true)
-      expect(promotion.credits_count).to eq(1)
+      expect(promotion.usage_count).to eq(1)
     end
 
     # Regression test for #4112
     it "does not count ineligible adjustments" do
       adjustment.update_column(:eligible, false)
-      expect(promotion.credits_count).to eq(0)
+      expect(promotion.usage_count).to eq(0)
     end
   end
 
   context "#eligible?" do
+    subject do
+      promotion.eligible?(promotable)
+    end
+
     let(:promotable) { create :order }
-    subject { promotion.eligible?(promotable) }
+
+    it { should be true }
+
     context "when promotion is expired" do
       before { promotion.expires_at = Time.now - 10.days }
       it { should be false }
     end
+
+    context "when the promotion's usage limit is exceeded" do
+      let(:promotion) { create(:promotion, :with_order_adjustment) }
+
+      before do
+        Spree::Adjustment.create!(label: 'Adjustment', amount: 1, source: promotion.actions.first)
+        promotion.usage_limit = 1
+      end
+
+      it "returns false" do
+        expect(promotion.eligible?(promotable)).to eq(false)
+      end
+    end
+
+    context "when the promotion code's usage limit is exceeded" do
+      let(:promotion) { create(:promotion, :with_order_adjustment, code: 'abc123', per_code_usage_limit: 1) }
+      let(:promotion_code) { promotion.codes.first }
+
+      before do
+        Spree::Adjustment.create!(label: 'Adjustment', amount: 1, source: promotion.actions.first, promotion_code: promotion_code)
+      end
+
+      it "returns false" do
+        expect(promotion.eligible?(promotable, promotion_code: promotion_code)).to eq(false)
+      end
+    end
+
     context "when promotable is a Spree::LineItem" do
       let(:promotable) { create :line_item }
       let(:product) { promotable.product }
+
       before do
         product.promotionable = promotionable
       end
+
       context "and product is promotionable" do
         let(:promotionable) { true }
         it { should be true }
       end
+
       context "and product is not promotionable" do
         let(:promotionable) { false }
         it { should be false }
       end
     end
+
     context "when promotable is a Spree::Order" do
       let(:promotable) { create :order }
+
       context "and it is empty" do
         it { should be true }
       end
+
       context "and it contains items" do
         let!(:line_item) { create(:line_item, order: promotable) }
         let!(:line_item2) { create(:line_item, order: promotable) }
@@ -395,10 +493,24 @@ describe Spree::Promotion do
       end
     end
 
-      context 'when the order is not eligible for the promotion' do
+    context 'when the order is not eligible for the promotion' do
+      context "due to promotion expiration" do
         before { promotion.starts_at = Time.current + 2.days }
         it { should_not be }
       end
+
+      context "due to promotion code not being eligible" do
+        let(:order) { create(:order) }
+        let(:promotion) { create(:promotion, per_code_usage_limit: 0) }
+        let(:promotion_code) { create(:promotion_code, promotion: promotion) }
+
+        subject { promotion.line_item_actionable? order, line_item, promotion_code: promotion_code }
+
+        it "returns false" do
+          expect(subject).to eq false
+        end
+      end
+    end
   end
 
   # regression for #4059
@@ -467,6 +579,40 @@ describe Spree::Promotion do
       expect(other_line_item).not_to eq line_item
       expect(other_line_item.adjustments).to have(1).item
       expect(order.adjustment_total).to eq -10
+    end
+  end
+
+  describe "#build_promotion_codes" do
+    context "when number_of_codes is 1" do
+      before do
+        promotion.build_promotion_codes(base_code: 'abc', number_of_codes: 1)
+      end
+
+      it "builds one code" do
+        expect(promotion.codes.size).to eq 1
+      end
+
+      it "builds one code with the correct value" do
+        expect(promotion.codes.map(&:value)).to eq ['abc']
+      end
+    end
+
+    context "when number_of_codes is greater than 1" do
+      before do
+        promotion.build_promotion_codes(base_code: 'abc', number_of_codes: 2)
+      end
+
+      it "builds the correct number of codes" do
+        expect(promotion.codes.size).to eq 2
+      end
+
+      it "builds codes with distinct values" do
+        expect(promotion.codes.map(&:value).uniq.size).to eq 2
+      end
+
+      it "builds codes with the same base prefix" do
+        expect(promotion.codes.map(&:value)).to all(match(/\Aabc_/))
+      end
     end
   end
 end
