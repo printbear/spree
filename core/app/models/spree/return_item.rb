@@ -33,6 +33,8 @@ module Spree
     scope :awaiting_return, -> { where(reception_status: 'awaiting') }
     scope :expecting_return, -> { where.not(reception_status: COMPLETED_RECEPTION_STATUSES) }
     scope :not_cancelled, -> { where.not(reception_status: 'cancelled') }
+    scope :valid, -> { where.not(reception_status: %w(cancelled expired))}
+    scope :not_expired, -> { where.not(reception_status: 'expired')}
     scope :received, -> { where(reception_status: 'received') }
     INTERMEDIATE_RECEPTION_STATUSES.each do |reception_status|
       scope reception_status, -> { where(reception_status: reception_status) }
@@ -71,6 +73,7 @@ module Spree
       event(:wrong_item_shipped) { transition to: :shipped_wrong_item, from: :awaiting }
       event(:short_shipped) { transition to: :short_shipped, from: :awaiting }
       event(:in_transit) { transition to: :in_transit, from: :awaiting }
+      event(:expired) { transition to: :expired, from: :awaiting }
     end
 
     extend DisplayMoney
@@ -107,7 +110,7 @@ module Spree
     end
 
     def self.from_inventory_unit(inventory_unit)
-      not_cancelled.find_by(inventory_unit: inventory_unit) ||
+      valid.find_by(inventory_unit: inventory_unit) ||
         new(inventory_unit: inventory_unit).tap(&:set_default_pre_tax_amount)
     end
 
@@ -152,7 +155,9 @@ module Spree
       status_paths = reception_status_paths.to_states
       event_paths = reception_status_paths.events
       status_paths.delete(:cancelled)
+      status_paths.delete(:expired)
       event_paths.delete(:cancel)
+      event_paths.delete(:expired)
 
       status_paths.map{ |s| s.to_s.humanize }.zip(event_paths)
     end
@@ -235,7 +240,7 @@ module Spree
     def cancel_others
       Spree::ReturnItem.where(inventory_unit_id: inventory_unit_id)
                        .where.not(id: id)
-                       .where.not(reception_status: 'cancelled')
+                       .valid
                        .each do |return_item|
         return_item.cancel!
       end
