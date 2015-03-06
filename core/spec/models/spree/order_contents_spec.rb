@@ -527,7 +527,7 @@ describe Spree::OrderContents do
     end
   end
 
-  describe "refresh_shipment_rates" do
+  describe "#refresh_shipment_rates" do
     let!(:order) { create(:order_with_line_items, line_items_count: 1) }
     let(:shipment) { order.shipments.first }
 
@@ -552,4 +552,51 @@ describe Spree::OrderContents do
     end
   end
 
+  describe "#ship_shipment" do
+    subject do
+      order.contents.ship_shipment(shipment)
+    end
+
+    let(:order) { create(:order_ready_to_ship, line_items_count: 1) }
+    let(:shipment) { order.shipments.to_a.first }
+
+    it "creates a carton" do
+      expect { subject }.to change { order.cartons.count }.by(1)
+    end
+
+    it "marks the inventory units as shipped" do
+      expect { subject }.to change { order.inventory_units.reload.map(&:state) }.from(['on_hand']).to(['shipped'])
+    end
+
+    describe "shipment email" do
+      before { with_test_mail { subject } }
+
+      def emails
+        ActionMailer::Base.deliveries
+      end
+
+      it "should send a shipment email" do
+        expect(emails.size).to eq(1)
+        expect(emails.first.subject).to eq("Spree Demo Site Shipment Notification ##{order.number}")
+      end
+    end
+
+    it "updates the order shipment state" do
+      expect { subject }.to change { order.reload.shipment_state }.from('ready').to('shipped')
+    end
+
+    it "updates shipment.shipped_at" do
+      future = Timecop.freeze
+      expect { subject }.to change { shipment.shipped_at }.from(nil).to(future)
+    end
+
+    it "updates order.updated_at" do
+      future = 1.minute.from_now
+      expect do
+        Timecop.freeze(future) do
+          subject
+        end
+      end.to change { order.updated_at }.from(order.updated_at).to(future)
+    end
+  end
 end

@@ -2,22 +2,23 @@ require 'spec_helper'
 require 'benchmark'
 
 describe Spree::Shipment do
-  let(:order) { mock_model Spree::Order, backordered?: false,
-                                         canceled?: false,
-                                         can_ship?: true,
-                                         currency: 'USD',
-                                         touch: true }
+  let(:order) { create(:order_ready_to_ship, line_items_count: 1) }
   let(:shipping_method) { create(:shipping_method, name: "UPS") }
   let(:stock_location) { create(:stock_location) }
   let(:shipment) do
-    shipment = Spree::Shipment.new
-    shipment.stub(shipping_method: shipping_method)
-    shipment.stub(order: order)
-    shipment.stub(stock_location: stock_location)
-    shipment.state = 'pending'
-    shipment.cost = 1
-    shipment.save
-    shipment
+    order.shipments.create!(
+      state: 'pending',
+      cost: 1,
+      address: order.ship_address,
+      inventory_units: order.inventory_units,
+      shipping_rates: [
+        Spree::ShippingRate.new(
+          shipping_method: shipping_method,
+          selected: true,
+        ),
+      ],
+      stock_location: stock_location,
+    )
   end
 
   let(:variant) { mock_model(Spree::Variant) }
@@ -38,16 +39,16 @@ describe Spree::Shipment do
   end
 
   it 'is backordered if one if its inventory_units is backordered' do
-    shipment.stub(inventory_units: [
-      mock_model(Spree::InventoryUnit, backordered?: false),
-      mock_model(Spree::InventoryUnit, backordered?: true)
-    ])
+    shipment.inventory_units = [
+      build(:inventory_unit, state: 'backordered'),
+      build(:inventory_unit, state: 'shipped'),
+    ]
     shipment.should be_backordered
   end
 
   context "display_amount" do
     it "retuns a Spree::Money" do
-      shipment.stub(:cost) { 21.22 }
+      shipment.cost = 21.22
       shipment.display_amount.should == Spree::Money.new(21.22)
     end
   end
@@ -239,11 +240,6 @@ describe Spree::Shipment do
     end
 
     context "when shipment state changes to shipped" do
-      before do
-        shipment.stub(:send_shipped_email)
-        shipment.stub(:update_order_shipment_state)
-      end
-
       it "should call after_ship" do
         shipment.state = 'pending'
         shipment.should_receive :after_ship
@@ -378,9 +374,6 @@ describe Spree::Shipment do
       end
 
       it 'unstocks them items' do
-        shipment.stub(:update_order_shipment_state)
-        shipment.stub(:send_shipped_email)
-
         shipment_with_inventory_units.stock_location.should_receive(:unstock).exactly(5).times
         subject
       end
@@ -393,42 +386,15 @@ describe Spree::Shipment do
           shipment.stub(require_inventory: false, update_order: true, state: state)
         end
 
-        it "should update shipped_at timestamp" do
-          shipment.stub(:update_order_shipment_state)
-          shipment.stub(:send_shipped_email)
-
-          shipment.ship!
-          shipment.shipped_at.should_not be_nil
-          # Ensure value is persisted
-          shipment.reload
-          shipment.shipped_at.should_not be_nil
-        end
-
-        it "should send a shipment email" do
-          mail_message = double 'Mail::Message'
-          shipment_id = nil
-          Spree::ShipmentMailer.should_receive(:shipped_email) { |*args|
-            shipment_id = args[0]
-            mail_message
-          }
-          mail_message.should_receive :deliver
-          shipment.stub(:update_order_shipment_state)
-
-          shipment.ship!
-          shipment_id.should == shipment.id
-        end
-
         it "should call fulfill_order_with_stock_location" do
-          shipment.stub(:update_order_shipment_state)
-          shipment.stub(:send_shipped_email)
-          shipment.should_receive(:fulfill_order_with_stock_location)
+          expect(Spree::OrderStockLocation).to(
+            receive(:fulfill_for_order_with_stock_location).
+            with(order, stock_location)
+          )
           shipment.ship!
         end
 
         it "finalizes adjustments" do
-          shipment.stub(:update_order_shipment_state)
-          shipment.stub(:send_shipped_email)
-
           shipment.adjustments.each do |adjustment|
             expect(adjustment).to receive(:finalize!)
           end
@@ -520,11 +486,17 @@ describe Spree::Shipment do
   end
 
   context "#tracking_url" do
-    it "uses shipping method to determine url" do
-      shipping_method.should_receive(:build_tracking_url).with('1Z12345').and_return(:some_url)
-      shipment.tracking = '1Z12345'
+    subject do
+      shipment.tracking_url
+    end
 
-      shipment.tracking_url.should == :some_url
+    before do
+      shipping_method.update!(tracking_url: "https://example.com/:tracking")
+      shipment.tracking = '1Z12345'
+    end
+
+    it "uses shipping method to determine url" do
+      is_expected.to eq("https://example.com/1Z12345")
     end
   end
 
@@ -574,7 +546,14 @@ describe Spree::Shipment do
 
   context "don't require shipment" do
     let(:stock_location) { create(:stock_location, fulfillable: false)}
-    let(:unshippable_shipment) { create(:shipment, stock_location: stock_location)}
+    let(:unshippable_shipment) do
+      create(
+        :shipment,
+        stock_location: stock_location,
+        inventory_units: [build(:inventory_unit)],
+      )
+    end
+
     before { order.stub paid?: true }
 
     it 'proceeds automatically to shipped state' do
