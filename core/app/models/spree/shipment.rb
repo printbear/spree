@@ -384,7 +384,7 @@ module Spree
       def after_ship
         # TODO: Get this out of the model and have OrderContents#ship_shipment
         # called directly everywhere
-        order.contents.ship_shipment(self)
+        order.shipping.ship_shipment(self)
       end
 
       def set_cost_zero_when_nil

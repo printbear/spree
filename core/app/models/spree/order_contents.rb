@@ -159,34 +159,6 @@ module Spree
       order.shipments.map(&:refresh_rates)
     end
 
-    def ship_shipment(shipment)
-      carton = order.cartons.create!(
-        stock_location: shipment.stock_location,
-        address: shipment.address,
-        shipping_method: shipment.shipping_method,
-        inventory_units: shipment.inventory_units.select(&:on_hand?),
-      )
-      # TODO: make OrderContents#ship_shipment call Shipment#ship! rather than
-      # having Shipment#ship! call OrderContents#ship_shipment. We only really
-      # need this `update_columns` for the specs, until we make that change.
-      shipment.update_columns(state: 'shipped', shipped_at: Time.now)
-
-      carton.inventory_units.each &:ship!
-
-      if carton.stock_location.fulfillable?
-        # TODO: send carton instead of shipment
-        ShipmentMailer.shipped_email(shipment.id).deliver
-      end
-
-      Spree::OrderStockLocation.fulfill_for_order_with_stock_location(order, carton.stock_location)
-
-      new_state = OrderUpdater.new(order).update_shipment_state
-      order.update_columns(
-        shipment_state: new_state,
-        updated_at: Time.now,
-      )
-    end
-
     private
       def order_updater
         @updater ||= OrderUpdater.new(order)
