@@ -48,19 +48,34 @@ module Spree
             end
 
             context "with products rules" do
-              let!(:second_line_item) { create(:line_item, :order => order) }
               let(:rule) { double Spree::Promotion::Rules::Product }
 
-              before do
-                promotion.stub(:eligible_rules) { [rule] }
-                rule.stub(:actionable?).and_return(true, false)
+              before { promotion.stub(:eligible_rules) { [rule] } }
+
+              context "when the rule is actionable" do
+                before { rule.stub(:actionable?).and_return(true) }
+
+                it "creates an adjustment" do
+                  expect {
+                    expect {
+                      action.perform(payload)
+                    }.to change { action.adjustments.count }.by(1)
+                  }.to change { line_item.adjustments.count }.by(1)
+
+                  expect(action.adjustments.last).to eq line_item.adjustments.last
+                end
               end
 
-              it "does not create an adjustmenty for line_items not in product rule" do
-                action.perform(payload)
-                expect(action.adjustments.count).to eql 1
-                expect(line_item.reload.adjustments).to match_array action.adjustments
-                expect(second_line_item.reload.adjustments).to be_empty
+              context "when the rule is not actionable" do
+                before { rule.stub(:actionable?).and_return(false) }
+
+                it "does not create an adjustment" do
+                  expect {
+                    expect {
+                      action.perform(payload)
+                    }.to_not change { action.adjustments.count }
+                  }.to_not change { line_item.adjustments.count }
+                end
               end
             end
 
