@@ -3,6 +3,7 @@ class Spree::OrderShipping
     @order = order
   end
 
+  # returns the carton created. raises on failure.
   def ship_shipment(shipment)
     ship(
       inventory_units: shipment.inventory_units,
@@ -13,11 +14,12 @@ class Spree::OrderShipping
     )
   end
 
+  # returns the carton created. raises on failure.
   def ship(inventory_units:, stock_location:, address:, shipping_method:, shipped_at: Time.now)
     Spree::InventoryUnit.transaction do
       inventory_units.each &:ship!
 
-      @order.cartons.create!(
+      carton = @order.cartons.create!(
         stock_location: stock_location,
         address: address,
         shipping_method: shipping_method,
@@ -42,6 +44,8 @@ class Spree::OrderShipping
 
     fulfill_order_stock_locations(stock_location)
     update_order_state
+
+    carton
   end
 
   private
