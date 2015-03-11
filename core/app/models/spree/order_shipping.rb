@@ -16,6 +16,8 @@ class Spree::OrderShipping
 
   # returns the carton created. raises on failure.
   def ship(inventory_units:, stock_location:, address:, shipping_method:, shipped_at: Time.now)
+    carton = nil
+
     Spree::InventoryUnit.transaction do
       inventory_units.each &:ship!
 
