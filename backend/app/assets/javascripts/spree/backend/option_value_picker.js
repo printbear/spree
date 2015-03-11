@@ -19,7 +19,7 @@ $.fn.optionValueAutocomplete = function (options) {
     ajax: {
       url: Spree.routes.option_value_search,
       datatype: 'json',
-      headers: { "X-Spree-Token": Spree.api_key },
+      params: { "headers": { "X-Spree-Token": Spree.api_key } },
       data: function (term, page) {
         var productId = typeof(productSelect) !== 'undefined' ? $(productSelect).select2('val') : null;
         return {

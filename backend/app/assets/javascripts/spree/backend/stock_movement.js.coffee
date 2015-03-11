@@ -3,7 +3,7 @@ jQuery ->
     placeholder: "Find a stock item" # translate
     ajax:
       url: Spree.routes.stock_items_api
-      headers: { "X-Spree-Token": Spree.api_key }
+      params: { "headers": { "X-Spree-Token": Spree.api_key } }
       data: (term, page) ->
         q:
           variant_product_name_cont: term
