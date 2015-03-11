@@ -11,12 +11,13 @@ class Spree::Carton < ActiveRecord::Base
   validates :stock_location, presence: true
   validates :shipping_method, presence: true
   validates :inventory_units, presence: true
+  validates :shipped_at, presence: true
 
   make_permalink field: :number, length: 11, prefix: 'C'
 
   scope :trackable, -> { where("tracking IS NOT NULL AND tracking != ''") }
   # sort by most recent shipped_at, falling back to created_at. add "id desc" to make specs that involve this scope more deterministic.
-  scope :reverse_chronological, -> { order('coalesce(spree_shipments.shipped_at, spree_shipments.created_at) desc', id: :desc) }
+  scope :reverse_chronological, -> { order(shipped_at: :desc, id: :desc) }
 
   def to_param
     number
