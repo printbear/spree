@@ -896,7 +896,7 @@ describe Spree::Order do
 
   describe "#unreturned_exchange?" do
     let(:order) { create(:order_with_line_items) }
-    subject { order.unreturned_exchange? }
+    subject { order.reload.unreturned_exchange? }
 
     context "the order does not have a shipment" do
       before { order.shipments.destroy_all }
