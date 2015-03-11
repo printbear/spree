@@ -9,10 +9,11 @@ class Spree::OrderShipping
       stock_location: shipment.stock_location,
       address: shipment.address,
       shipping_method: shipment.shipping_method,
+      shipped_at: Time.now,
     )
   end
 
-  def ship(inventory_units:, stock_location:, address:, shipping_method:)
+  def ship(inventory_units:, stock_location:, address:, shipping_method:, shipped_at: Time.now)
     Spree::InventoryUnit.transaction do
       inventory_units.each &:ship!
 
@@ -21,6 +22,7 @@ class Spree::OrderShipping
         address: address,
         shipping_method: shipping_method,
         inventory_units: inventory_units,
+        shipped_at: shipped_at,
       )
     end
 
