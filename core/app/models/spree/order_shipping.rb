@@ -1,9 +1,17 @@
+# A service layer that handles generating Carton objects when inventory units
+# are actually shipped.  It also takes care of things like updating order and
+# shipment states and delivering shipment emails as needed.
 class Spree::OrderShipping
   def initialize(order)
     @order = order
   end
 
-  # returns the carton created. raises on failure.
+  # A shortcut method that ships *all* inventory units in a shipment in a single
+  # carton.  See also {#ship}.
+  #
+  # @param shipment The shipment to create a carton from.
+  # @param external_number An optional external number. e.g. from a shipping company or 3PL.
+  # @return The carton created.
   def ship_shipment(shipment, external_number: nil)
     ship(
       inventory_units: shipment.inventory_units,
@@ -15,7 +23,17 @@ class Spree::OrderShipping
     )
   end
 
-  # returns the carton created. raises on failure.
+  # Generate a carton from the supplied inventory units and marks those units
+  # as shipped.  Also sends shipment emails if appropriate and updates
+  # shipment_states for associated orders.
+  #
+  # @param inventory_units The units to put in a carton together.
+  # @param stock_location The location the carton shipped from.
+  # @param address The address the carton was shipped to.
+  # @param shipping_method Shipping method used for the carton.
+  # @param shipped_at The time at which the shipment was shipped.
+  # @param external_number An optional external number. e.g. from a shipping company or 3PL.
+  # @return The carton created.
   def ship(inventory_units:, stock_location:, address:, shipping_method:, shipped_at: Time.now, external_number: nil)
     carton = nil
 
