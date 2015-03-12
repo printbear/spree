@@ -1,12 +1,11 @@
 class Spree::Carton < ActiveRecord::Base
-  belongs_to :order, class_name: 'Spree::Order', touch: true, inverse_of: :cartons
   belongs_to :address, class_name: 'Spree::Address', inverse_of: :cartons
   belongs_to :stock_location, class_name: 'Spree::StockLocation', inverse_of: :cartons
   belongs_to :shipping_method, class_name: 'Spree::ShippingMethod', inverse_of: :cartons
 
   has_many :inventory_units, inverse_of: :carton
+  has_many :orders, through: :inventory_units
 
-  validates :order, presence: true
   validates :address, presence: true
   validates :stock_location, presence: true
   validates :shipping_method, presence: true

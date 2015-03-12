@@ -3,7 +3,6 @@ class CreateSpreeCartons < ActiveRecord::Migration
     create_table "spree_cartons" do |t|
       t.string "number", index: true
 
-      t.references "order", index: true
       t.references "stock_location", index: true
       t.references "address"
       t.references "shipping_method"
