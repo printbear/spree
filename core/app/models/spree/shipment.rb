@@ -2,6 +2,8 @@ require 'ostruct'
 
 module Spree
   class Shipment < ActiveRecord::Base
+    include Spree::ShippingManifest
+
     belongs_to :order, class_name: 'Spree::Order', touch: true, inverse_of: :shipments
     belongs_to :address, class_name: 'Spree::Address', inverse_of: :shipments
     belongs_to :stock_location, class_name: 'Spree::StockLocation'
@@ -27,6 +29,8 @@ module Spree
     scope :ready,   -> { with_state('ready') }
     scope :pending, -> { with_state('pending') }
     scope :with_state, ->(*s) { where(state: s) }
+
+    # TODO: remove this, this belongs on carton
     scope :trackable, -> { where("tracking IS NOT NULL AND tracking != ''") }
     # sort by most recent shipped_at, falling back to created_at. add "id desc" to make specs that involve this scope more deterministic.
     scope :reverse_chronological, -> { order('coalesce(spree_shipments.shipped_at, spree_shipments.created_at) desc', id: :desc) }
@@ -170,24 +174,6 @@ module Spree
 
     def editable_by?(user)
       !shipped?
-    end
-
-    ManifestItem = Struct.new(:line_item, :variant, :quantity, :states)
-
-    def manifest
-      # Grouping by the ID means that we don't have to call out to the association accessor
-      # This makes the grouping by faster because it results in less SQL cache hits.
-      inventory_units.group_by(&:variant_id).map do |variant_id, units|
-        units.group_by(&:line_item_id).map do |line_item_id, units|
-
-          states = {}
-          units.group_by(&:state).each { |state, iu| states[state] = iu.count }
-
-          line_item = units.first.line_item
-          variant = units.first.variant
-          ManifestItem.new(line_item, variant, units.length, states)
-        end
-      end.flatten
     end
 
     def line_items
