@@ -72,7 +72,6 @@ class Spree::OrderShipping
 
   private
 
-  # This is for exchanges
   def fulfill_order_stock_locations(stock_location)
     Spree::OrderStockLocation.fulfill_for_order_with_stock_location(@order, stock_location)
   end
