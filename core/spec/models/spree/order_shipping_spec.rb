@@ -75,6 +75,24 @@ describe Spree::OrderShipping do
         expect(order.cartons.last.external_number).to eq 'some-external-number'
       end
     end
+
+    context "with a tracking number" do
+      subject do
+        order.shipping.ship(
+          inventory_units: inventory_units,
+          stock_location: stock_location,
+          address: address,
+          shipping_method: shipping_method,
+          tracking_number: 'tracking-number',
+        )
+      end
+
+      it "sets the external_number" do
+        expect { subject }.to change { order.cartons.count }.by(1)
+        expect(order.cartons.last.tracking).to eq 'tracking-number'
+      end
+    end
+
   end
 
   describe "#ship_shipment" do
@@ -135,5 +153,20 @@ describe Spree::OrderShipping do
         expect(order.cartons.last.external_number).to eq 'some-external-number'
       end
     end
+
+    context "with a tracking number" do
+      subject do
+        order.shipping.ship_shipment(
+          shipment,
+          tracking_number: 'tracking-number',
+        )
+      end
+
+      it "sets the external_number" do
+        expect { subject }.to change { order.cartons.count }.by(1)
+        expect(order.cartons.last.tracking).to eq 'tracking-number'
+      end
+    end
+
   end
 end

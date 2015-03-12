@@ -11,8 +11,9 @@ class Spree::OrderShipping
   #
   # @param shipment The shipment to create a carton from.
   # @param external_number An optional external number. e.g. from a shipping company or 3PL.
+  # @param tracking_number An optional tracking number.
   # @return The carton created.
-  def ship_shipment(shipment, external_number: nil)
+  def ship_shipment(shipment, external_number: nil, tracking_number: nil)
     ship(
       inventory_units: shipment.inventory_units,
       stock_location: shipment.stock_location,
@@ -20,6 +21,7 @@ class Spree::OrderShipping
       shipping_method: shipment.shipping_method,
       shipped_at: Time.now,
       external_number: external_number,
+      tracking_number: tracking_number,
     )
   end
 
@@ -33,8 +35,11 @@ class Spree::OrderShipping
   # @param shipping_method Shipping method used for the carton.
   # @param shipped_at The time at which the shipment was shipped.
   # @param external_number An optional external number. e.g. from a shipping company or 3PL.
+  # @param tracking_number An option tracking number.
   # @return The carton created.
-  def ship(inventory_units:, stock_location:, address:, shipping_method:, shipped_at: Time.now, external_number: nil)
+  def ship(inventory_units:, stock_location:, address:, shipping_method:,
+           shipped_at: Time.now, external_number: nil, tracking_number: nil)
+
     carton = nil
 
     Spree::InventoryUnit.transaction do
@@ -47,10 +52,15 @@ class Spree::OrderShipping
         inventory_units: inventory_units,
         shipped_at: shipped_at,
         external_number: external_number,
+        tracking: tracking_number,
       )
     end
 
     inventory_units.map(&:shipment).uniq.each do |shipment|
+      # Temporarily propagate the tracking number to the shipment as well
+      # TODO: Remove tracking numbers from shipments.
+      shipment.update_attributes!(tracking: tracking_number)
+
       if shipment.inventory_units.all?(&:shipped?)
         # TODO: make OrderContents#ship_shipment call Shipment#ship! rather than
         # having Shipment#ship! call OrderContents#ship_shipment. We only really
