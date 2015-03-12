@@ -34,6 +34,8 @@ module Spree
     # shipment state machine (see http://github.com/pluginaweek/state_machine/tree/master for details)
     state_machine initial: :pending, use_transactions: false do
       event :ready do
+        # TODO: Remove this transition and the #requires_shipment? method when
+        # we stop marking shipments as shipped
         transition from: :pending, to: :shipped, if: lambda {|shipment| !shipment.requires_shipment? }
 
         transition from: :pending, to: :ready, if: lambda { |shipment|
@@ -380,27 +382,9 @@ module Spree
       end
 
       def after_ship
-        inventory_units.each &:ship!
-        send_shipped_email if requires_shipment?
-        touch :shipped_at
-        fulfill_order_with_stock_location
-        update_order_shipment_state
-      end
-
-      def fulfill_order_with_stock_location
-        Spree::OrderStockLocation.fulfill_for_order_with_stock_location(order, stock_location)
-      end
-
-      def update_order_shipment_state
-        new_state = OrderUpdater.new(order).update_shipment_state
-        order.update_columns(
-          shipment_state: new_state,
-          updated_at: Time.now,
-        )
-      end
-
-      def send_shipped_email
-        ShipmentMailer.shipped_email(self.id).deliver
+        # TODO: Get this out of the model and have OrderShipping#ship_shipment
+        # called directly everywhere
+        order.shipping.ship_shipment(self)
       end
 
       def set_cost_zero_when_nil

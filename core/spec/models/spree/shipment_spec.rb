@@ -386,31 +386,6 @@ describe Spree::Shipment do
           shipment.stub(require_inventory: false, update_order: true, state: state)
         end
 
-        it "should update shipped_at timestamp" do
-          shipment.stub(:update_order_shipment_state)
-          shipment.stub(:send_shipped_email)
-
-          shipment.ship!
-          shipment.shipped_at.should_not be_nil
-          # Ensure value is persisted
-          shipment.reload
-          shipment.shipped_at.should_not be_nil
-        end
-
-        it "should send a shipment email" do
-          mail_message = double 'Mail::Message'
-          shipment_id = nil
-          Spree::ShipmentMailer.should_receive(:shipped_email) { |*args|
-            shipment_id = args[0]
-            mail_message
-          }
-          mail_message.should_receive :deliver
-          shipment.stub(:update_order_shipment_state)
-
-          shipment.ship!
-          shipment_id.should == shipment.id
-        end
-
         it "should call fulfill_order_with_stock_location" do
           expect(Spree::OrderStockLocation).to(
             receive(:fulfill_for_order_with_stock_location).
