@@ -64,7 +64,7 @@ module Spree
     has_many :order_promotions, class_name: 'Spree::OrderPromotion'
     has_many :promotions, through: :order_promotions
 
-    has_many :cartons, inverse_of: :order
+    has_many :cartons, through: :inventory_units
     has_many :shipments, dependent: :destroy, inverse_of: :order do
       def states
         pluck(:state).uniq
