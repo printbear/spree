@@ -3,6 +3,8 @@ class CreateSpreeCartons < ActiveRecord::Migration
     create_table "spree_cartons" do |t|
       t.string "number", index: true
 
+      t.string "external_number"
+
       t.references "stock_location", index: true
       t.references "address"
       t.references "shipping_method"
@@ -13,6 +15,8 @@ class CreateSpreeCartons < ActiveRecord::Migration
 
       t.timestamps
     end
+
+    add_index "spree_cartons", "external_number"
 
     add_column "spree_inventory_units", "carton_id", :integer, index: true
   end

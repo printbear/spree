@@ -4,18 +4,19 @@ class Spree::OrderShipping
   end
 
   # returns the carton created. raises on failure.
-  def ship_shipment(shipment)
+  def ship_shipment(shipment, external_number: nil)
     ship(
       inventory_units: shipment.inventory_units,
       stock_location: shipment.stock_location,
       address: shipment.address,
       shipping_method: shipment.shipping_method,
       shipped_at: Time.now,
+      external_number: external_number,
     )
   end
 
   # returns the carton created. raises on failure.
-  def ship(inventory_units:, stock_location:, address:, shipping_method:, shipped_at: Time.now)
+  def ship(inventory_units:, stock_location:, address:, shipping_method:, shipped_at: Time.now, external_number: nil)
     carton = nil
 
     Spree::InventoryUnit.transaction do
@@ -27,6 +28,7 @@ class Spree::OrderShipping
         shipping_method: shipping_method,
         inventory_units: inventory_units,
         shipped_at: shipped_at,
+        external_number: external_number,
       )
     end
 

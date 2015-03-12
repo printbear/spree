@@ -58,6 +58,23 @@ describe Spree::OrderShipping do
         end
       end.to change { order.updated_at }.from(order.updated_at).to(future)
     end
+
+    context "with an external_number" do
+      subject do
+        order.shipping.ship(
+          inventory_units: inventory_units,
+          stock_location: stock_location,
+          address: address,
+          shipping_method: shipping_method,
+          external_number: 'some-external-number',
+        )
+      end
+
+      it "sets the external_number" do
+        expect { subject }.to change { order.cartons.count }.by(1)
+        expect(order.cartons.last.external_number).to eq 'some-external-number'
+      end
+    end
   end
 
   describe "#ship_shipment" do
@@ -103,6 +120,20 @@ describe Spree::OrderShipping do
           subject
         end
       end.to change { order.updated_at }.from(order.updated_at).to(future)
+    end
+
+    context "with an external_number" do
+      subject do
+        order.shipping.ship_shipment(
+          shipment,
+          external_number: 'some-external-number',
+        )
+      end
+
+      it "sets the external_number" do
+        expect { subject }.to change { order.cartons.count }.by(1)
+        expect(order.cartons.last.external_number).to eq 'some-external-number'
+      end
     end
   end
 end
