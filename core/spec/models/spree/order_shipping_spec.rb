@@ -93,7 +93,7 @@ describe Spree::OrderShipping do
         )
       end
 
-      it "sets the external_number" do
+      it "sets the tracking-number" do
         subject
         expect(order.cartons.last.tracking).to eq 'tracking-number'
       end
@@ -130,7 +130,7 @@ describe Spree::OrderShipping do
         )
       end
 
-      it "sets the external_number" do
+      it "sets the tracking-number" do
         subject
         expect(order.cartons.last.tracking).to eq 'tracking-number'
       end
