@@ -77,7 +77,7 @@ describe Spree::OrderShipping do
       end
 
       it "sets the external_number" do
-        expect { subject }.to change { order.cartons.count }.by(1)
+        subject
         expect(order.cartons.last.external_number).to eq 'some-external-number'
       end
     end
@@ -94,7 +94,7 @@ describe Spree::OrderShipping do
       end
 
       it "sets the external_number" do
-        expect { subject }.to change { order.cartons.count }.by(1)
+        subject
         expect(order.cartons.last.tracking).to eq 'tracking-number'
       end
     end
@@ -117,7 +117,7 @@ describe Spree::OrderShipping do
       end
 
       it "sets the external_number" do
-        expect { subject }.to change { order.cartons.count }.by(1)
+        subject
         expect(order.cartons.last.external_number).to eq 'some-external-number'
       end
     end
@@ -131,7 +131,7 @@ describe Spree::OrderShipping do
       end
 
       it "sets the external_number" do
-        expect { subject }.to change { order.cartons.count }.by(1)
+        subject
         expect(order.cartons.last.tracking).to eq 'tracking-number'
       end
     end
