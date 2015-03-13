@@ -324,8 +324,6 @@ module Spree
       touch :completed_at
 
       deliver_order_confirmation_email unless confirmation_delivered?
-
-      consider_risk
     end
 
     def deliver_order_confirmation_email
@@ -488,16 +486,6 @@ module Spree
 
     def can_approve?
       !approved?
-    end
-
-    def consider_risk
-      if is_risky? && !approved?
-        considered_risky!
-      end
-    end
-
-    def considered_risky!
-      update_attributes!(considered_risky: true)
     end
 
     # moved from api order_decorator. This is a better place for it.

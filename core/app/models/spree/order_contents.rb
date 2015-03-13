@@ -102,7 +102,6 @@ module Spree
     def resume
       order.resume!
       order.shipments.each { |shipment| shipment.resume! }
-      order.consider_risk
     end
 
     def advance
@@ -150,7 +149,6 @@ module Spree
       order.update_attributes!(
         approver: user,
         approver_name: name,
-        considered_risky: false,
         approved_at: Time.now,
       )
     end

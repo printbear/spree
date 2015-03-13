@@ -16,10 +16,9 @@ describe 'Order Risk Analysis' do
   end
 
   context "the order is considered risky" do
-    
+
     before do
       order.payments.first.update_column(:avs_response, 'X')
-      order.considered_risky!
       visit_order
     end
 
@@ -34,11 +33,11 @@ describe 'Order Risk Analysis' do
       expect(page).to have_content 'Status: complete'
     end
   end
-  
+
   context "the order is not considered risky" do
 
     before do
-      visit_order      
+      visit_order
     end
 
     it "does not display 'Risk Analysis' box" do

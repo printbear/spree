@@ -220,11 +220,6 @@ describe Spree::Order do
         order.stub :is_risky? => true
       end
 
-      it "should change state to risky" do
-        expect(order).to receive(:considered_risky!)
-        order.finalize!
-      end
-
       context "and order is approved" do
         before do
           order.stub :approved? => true

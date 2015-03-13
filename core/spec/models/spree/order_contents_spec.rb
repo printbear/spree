@@ -379,26 +379,6 @@ describe Spree::OrderContents do
         expect(shipment.state).to eq('pending')
       end
     end
-
-    describe "order.considered_risky" do
-      context "when not risky" do
-        it "is false" do
-          order.contents.resume
-          expect(order.considered_risky).to be_falsey
-        end
-      end
-
-      context "when risky" do
-        before do
-          order.payments.first.update_attributes!(cvv_response_message: 'fail')
-        end
-
-        it "is true" do
-          order.contents.resume
-          expect(order.considered_risky).to be_truthy
-        end
-      end
-    end
   end
 
   describe "#empty" do
@@ -486,7 +466,6 @@ describe Spree::OrderContents do
         order.contents.approve(name: 'Jordan')
         expect(order.approver).to be_nil
         expect(order.approver_name).to eq('Jordan')
-        expect(order.considered_risky).to be_falsy
         expect(order.approved_at).to be_present
         expect(order.approved?).to be_truthy
       end
@@ -499,7 +478,6 @@ describe Spree::OrderContents do
         order.contents.approve(user: user)
         expect(order.approver).to eq(user)
         expect(order.approver_name).to be_nil
-        expect(order.considered_risky).to be_falsey
         expect(order.approved_at).to be_present
         expect(order.approved?).to be_truthy
       end
@@ -512,7 +490,6 @@ describe Spree::OrderContents do
         order.contents.approve(user: user, name: 'Jordan')
         expect(order.approver).to eq(user)
         expect(order.approver_name).to eq('Jordan')
-        expect(order.considered_risky).to be_falsey
         expect(order.approved_at).to be_present
         expect(order.approved?).to be_truthy
       end
