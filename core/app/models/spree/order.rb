@@ -64,6 +64,7 @@ module Spree
     has_many :order_promotions, class_name: 'Spree::OrderPromotion'
     has_many :promotions, through: :order_promotions
 
+    has_many :cartons, -> { uniq }, through: :inventory_units
     has_many :shipments, dependent: :destroy, inverse_of: :order do
       def states
         pluck(:state).uniq
@@ -229,6 +230,10 @@ module Spree
 
     def contents
       @contents ||= Spree::OrderContents.new(self)
+    end
+
+    def shipping
+      @shipping ||= Spree::OrderShipping.new(self)
     end
 
     def associate_user!(user, override_email = true)
