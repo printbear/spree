@@ -527,7 +527,7 @@ describe Spree::OrderContents do
     end
   end
 
-  describe "refresh_shipment_rates" do
+  describe "#refresh_shipment_rates" do
     let!(:order) { create(:order_with_line_items, line_items_count: 1) }
     let(:shipment) { order.shipments.first }
 
@@ -551,5 +551,4 @@ describe Spree::OrderContents do
       end
     end
   end
-
 end

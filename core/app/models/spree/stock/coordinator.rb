@@ -34,6 +34,9 @@ module Spree
       # in packages we know they should be in and deal with other automatically-
       # handled inventory units otherwise.
       def build_location_configured_packages(packages = Array.new)
+        # The check for `shipment_fulfilled: false` is especially important for
+        # exchanges because at that point we're adding new items to the order
+        # but the original order_stock_locations have already been satisfied.
         order.order_stock_locations.where(shipment_fulfilled: false).group_by(&:stock_location).each do |stock_location, stock_location_configurations|
           units = stock_location_configurations.flat_map do |stock_location_configuration|
             unallocated_inventory_units.select { |iu| iu.variant == stock_location_configuration.variant }.take(stock_location_configuration.quantity)
