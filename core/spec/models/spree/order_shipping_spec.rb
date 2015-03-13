@@ -11,7 +11,7 @@ describe Spree::OrderShipping do
 
     it "creates a carton with the shipment's inventory units" do
       expect { subject }.to change { order.cartons.count }.by(1)
-      expect(order.cartons.first.inventory_units).to match_array(shipment.inventory_units)
+      expect(subject.inventory_units).to match_array(shipment.inventory_units)
     end
 
     describe "shipment email" do
@@ -77,8 +77,7 @@ describe Spree::OrderShipping do
       end
 
       it "sets the external_number" do
-        subject
-        expect(order.cartons.last.external_number).to eq 'some-external-number'
+        expect(subject.external_number).to eq 'some-external-number'
       end
     end
 
@@ -94,8 +93,7 @@ describe Spree::OrderShipping do
       end
 
       it "sets the tracking-number" do
-        subject
-        expect(order.cartons.last.tracking).to eq 'tracking-number'
+        expect(subject.tracking).to eq 'tracking-number'
       end
     end
 
@@ -117,8 +115,7 @@ describe Spree::OrderShipping do
       end
 
       it "sets the external_number" do
-        subject
-        expect(order.cartons.last.external_number).to eq 'some-external-number'
+        expect(subject.external_number).to eq 'some-external-number'
       end
     end
 
@@ -131,8 +128,7 @@ describe Spree::OrderShipping do
       end
 
       it "sets the tracking-number" do
-        subject
-        expect(order.cartons.last.tracking).to eq 'tracking-number'
+        expect(subject.tracking).to eq 'tracking-number'
       end
     end
 
