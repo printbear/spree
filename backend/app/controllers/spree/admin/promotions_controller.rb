@@ -8,22 +8,33 @@ module Spree
 
       helper 'spree/promotion_rules'
 
-      protected
-        def build_promotion_codes
-          @bulk_base = params[:bulk_base] if params[:bulk_base].present?
-          @bulk_number = Integer(params[:bulk_number]) if params[:bulk_number].present?
+      def create
+        @bulk_base = params[:bulk_base] if params[:bulk_base].present?
+        @bulk_number = Integer(params[:bulk_number]) if params[:bulk_number].present?
 
-          if @bulk_base && @bulk_number
-            @promotion.build_promotion_codes(
-              base_code: @bulk_base,
-              number_of_codes: @bulk_number,
-            )
-          end
+        builder = Spree::PromotionCodeBuilder.new(promotion_attrs: permitted_resource_params,
+                                                  base_code: @bulk_base,
+                                                  number_of_codes: @bulk_number,
+                                                  user: spree_current_user)
+        @promotion = builder.promotion
+
+        if builder.perform
+          flash[:success] = create_success_message(builder)
+          redirect_to location_after_save
+        else
+          flash[:error] = builder.promotion.errors.full_messages.join(", ")
+          render action: 'new'
         end
+      end
 
+      protected
         def load_bulk_code_information
           @bulk_base = @promotion.codes.first.try!(:value)
           @bulk_number = @promotion.codes.count
+        end
+
+        def create_success_message(promotion_code_builder)
+          flash_message_for(promotion_code_builder.promotion, :successfully_created)
         end
 
         def location_after_save
