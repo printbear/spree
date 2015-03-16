@@ -1067,6 +1067,7 @@ en:
         description: Available only to logged in users
         name: User Logged In
     promotions: Promotions
+    promotion_successfully_created: Promotion has been successfully created!
     promotion_uses: Promotion uses
     properties: Properties
     property: Property
