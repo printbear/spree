@@ -9,7 +9,7 @@ module Spree
       helper 'spree/promotion_rules'
 
       def create
-        @bulk_base = params[:bulk_base] if params[:bulk_base].present?
+        @bulk_base = params[:bulk_base].presence
         @bulk_number = Integer(params[:bulk_number]) if params[:bulk_number].present?
 
         builder = Spree::PromotionCodeBuilder.new(promotion_attrs: permitted_resource_params,
