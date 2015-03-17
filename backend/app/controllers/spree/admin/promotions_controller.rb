@@ -12,14 +12,18 @@ module Spree
         @bulk_base = params[:bulk_base].presence
         @bulk_number = params[:bulk_number].presence.try!(:to_i)
 
-        builder = Spree::PromotionBuilder.new(promotion_attrs: permitted_resource_params,
-                                              base_code: @bulk_base,
-                                              number_of_codes: @bulk_number,
-                                              user: spree_current_user)
-        @promotion = builder.promotion
+        @builder = Spree::PromotionBuilder.new(
+          permitted_resource_params,
+          {
+            number_of_codes: @bulk_number,
+            base_code: @bulk_base,
+            user: spree_current_user
+          }
+        )
+        @promotion = @builder.promotion
 
         if builder.perform
-          flash[:success] = Spree.t(:successfully_created, resource: promotion.class.model_name.human)
+          flash[:success] = Spree.t(:successfully_created, resource: @promotion.class.model_name.human)
           redirect_to location_after_save
         else
           flash[:error] = builder.errors.full_messages.join(", ")

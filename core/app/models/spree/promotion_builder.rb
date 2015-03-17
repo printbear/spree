@@ -1,7 +1,8 @@
 class Spree::PromotionBuilder
   include ActiveModel::Model
 
-  attr_reader :promotion, :base_code, :number_of_codes
+  attr_reader :promotion
+  attr_accessor :base_code, :number_of_codes, :user
 
   validates :number_of_codes,
     numericality: { only_integer: true, greater_than: 0 },
@@ -13,16 +14,11 @@ class Spree::PromotionBuilder
   self.default_random_code_length = 6
 
   # @param promotion_attrs [Hash] The desired attributes for the newly promotion
-  # @param base_code [String] When number_of_codes=1 this is the code. When
-  #   number_of_codes > 1 it is the base of the generated codes.
-  # @param number_of_codes [Integer] Number of codes to generate
+  # @param attributes [Hash] The desired attributes for this builder
   # @param user [Spree::User] The user who triggered this promotion build
-  def initialize(promotion_attrs:, base_code:, number_of_codes:, user: nil)
-    @promotion_attrs = promotion_attrs
-    @promotion = Spree::Promotion.new(@promotion_attrs)
-    @base_code = base_code
-    @number_of_codes = number_of_codes
-    @user = user
+  def initialize(promotion_attrs, attributes)
+    @promotion = Spree::Promotion.new(promotion_attrs)
+    super(attributes)
   end
 
   def perform
