@@ -1,4 +1,4 @@
-class Spree::PromotionCodeBuilder
+class Spree::PromotionBuilder
   attr_reader :promotion
 
   class_attribute :default_random_code_length
@@ -34,6 +34,14 @@ class Spree::PromotionCodeBuilder
     end
   end
 
+  def error_messages
+    promotion.errors.full_messages.join(", ")
+  end
+
+  def success_messages
+    Spree.t(:successfully_created, resource: promotion.class.model_name.human)
+  end
+
   private
 
   def build_code_with_base
@@ -47,6 +55,6 @@ class Spree::PromotionCodeBuilder
   end
 
   def code_with_randomness
-    "#{@base_code}_#{Array.new(Spree::PromotionCodeBuilder.default_random_code_length){ ('A'..'Z').to_a.sample }.join}"
+    "#{@base_code}_#{Array.new(Spree::PromotionBuilder.default_random_code_length){ ('A'..'Z').to_a.sample }.join}"
   end
 end

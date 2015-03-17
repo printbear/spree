@@ -1,14 +1,14 @@
 require 'spec_helper'
 
-describe Spree::PromotionCodeBuilder do
+describe Spree::PromotionBuilder do
   let(:promotion) { build(:promotion) }
   let(:base_code) { 'abc' }
+  let(:number_of_codes) { 1 }
   let(:promotion_attrs) { { name: 'some promo' } }
-  let(:builder) { Spree::PromotionCodeBuilder.new(promotion_attrs: promotion_attrs, base_code: base_code, number_of_codes: number_of_codes) }
+  let(:builder) { Spree::PromotionBuilder.new(promotion_attrs: promotion_attrs, base_code: base_code, number_of_codes: number_of_codes) }
 
   describe "#perform" do
     subject { builder.perform }
-    let(:number_of_codes) { 1 }
 
     context "with 1 or more codes" do
       it "builds promotion codes" do
@@ -38,8 +38,6 @@ describe Spree::PromotionCodeBuilder do
 
   describe "#build_promotion_codes" do
     context "when number_of_codes is 1" do
-      let(:number_of_codes) { 1 }
-
       subject { builder.build_promotion_codes }
 
       it "builds one code" do
@@ -74,7 +72,7 @@ describe Spree::PromotionCodeBuilder do
       end
 
       context "there is a collision with the random codes generated" do
-        before { Spree::PromotionCodeBuilder.default_random_code_length = 1 }
+        before { Spree::PromotionBuilder.default_random_code_length = 1 }
         let(:number_of_codes) { 26 }
 
         # With a random code length of 1, collisions happen frequently.
@@ -85,6 +83,25 @@ describe Spree::PromotionCodeBuilder do
           expect(builder.promotion.codes.map(&:value).uniq.size).to eq number_of_codes
         end
       end
+    end
+  end
+
+  describe "#error_messages" do
+    let(:promotion_attrs) { {} }
+    subject { builder.error_messages }
+    before { builder.perform }
+
+    it "returns the promotion's errors" do
+      expect(subject).to eq "Name can't be blank"
+    end
+  end
+
+  describe "#success_messages" do
+    subject { builder.success_messages }
+    before { builder.perform }
+
+    it "returns 'Promotion has been successfully created!'" do
+      expect(subject).to eq "Promotion has been successfully created!"
     end
   end
 end
