@@ -1,5 +1,13 @@
 class Spree::PromotionBuilder
-  attr_reader :promotion
+  include ActiveModel::Model
+
+  attr_reader :promotion, :base_code, :number_of_codes
+
+  validates :number_of_codes,
+    numericality: { only_integer: true, greater_than: 0 },
+    allow_nil: true
+
+  validate :promotion_validity
 
   class_attribute :default_random_code_length
   self.default_random_code_length = 6
@@ -25,9 +33,9 @@ class Spree::PromotionBuilder
   # Build promo codes. If @number_of_codes is greater than one then generate
   # multiple codes by adding a random suffix to each code.
   def build_promotion_codes
-    if @number_of_codes == 1
+    if number_of_codes == 1
       @promotion.codes.build(value: @base_code)
-    elsif @number_of_codes > 1
+    elsif number_of_codes > 1
       @number_of_codes.times do
         build_code_with_base
       end
@@ -42,8 +50,11 @@ class Spree::PromotionBuilder
     Spree.t(:successfully_created, resource: promotion.class.model_name.human)
   end
 
-  private
+  def number_of_codes=value
+    @number_of_codes = value.presence.try(:to_i)
+  end
 
+  private
   def build_code_with_base
     random_code = code_with_randomness
 
@@ -56,5 +67,13 @@ class Spree::PromotionBuilder
 
   def code_with_randomness
     "#{@base_code}_#{Array.new(Spree::PromotionBuilder.default_random_code_length){ ('A'..'Z').to_a.sample }.join}"
+  end
+
+  def promotion_validity
+    if !@promotion.valid?
+      @promotion.errors.each do |attribute, error|
+        errors[attribute].push error
+      end
+    end
   end
 end
