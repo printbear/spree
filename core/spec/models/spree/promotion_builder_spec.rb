@@ -133,22 +133,4 @@ describe Spree::PromotionBuilder do
     end
   end
 
-  describe "#error_messages" do
-    let(:promotion_attrs) { {} }
-    subject { builder.error_messages }
-    before { builder.perform }
-
-    it "returns the promotion's errors" do
-      expect(subject).to eq "Name can't be blank"
-    end
-  end
-
-  describe "#success_messages" do
-    subject { builder.success_messages }
-    before { builder.perform }
-
-    it "returns 'Promotion has been successfully created!'" do
-      expect(subject).to eq "Promotion has been successfully created!"
-    end
-  end
 end

@@ -19,10 +19,10 @@ module Spree
         @promotion = builder.promotion
 
         if builder.perform
-          flash[:success] = builder.success_messages
+          flash[:success] = Spree.t(:successfully_created, resource: promotion.class.model_name.human)
           redirect_to location_after_save
         else
-          flash[:error] = builder.error_messages
+          flash[:error] = builder.errors.full_messages.join(", ")
           render action: 'new'
         end
       end

@@ -42,14 +42,6 @@ class Spree::PromotionBuilder
     end
   end
 
-  def error_messages
-    promotion.errors.full_messages.join(", ")
-  end
-
-  def success_messages
-    Spree.t(:successfully_created, resource: promotion.class.model_name.human)
-  end
-
   def number_of_codes=value
     @number_of_codes = value.presence.try(:to_i)
   end
