@@ -77,6 +77,44 @@ describe Spree::PromotionBuilder do
         subject
         expect(builder.promotion.codes.length).to eq number_of_codes
       end
+
+      it "builds one code with the correct value" do
+        subject
+        expect(builder.promotion.codes.map(&:value)).to eq ['abc']
+      end
+    end
+
+    context "when number_of_codes is greater than 1" do
+      before  { srand 123 }
+      let(:number_of_codes) { 2 }
+
+      it "builds the correct number of codes" do
+        subject
+        expect(builder.promotion.codes.size).to eq 2
+      end
+
+      it "builds codes with distinct values" do
+        subject
+        expect(builder.promotion.codes.map(&:value).uniq.size).to eq 2
+      end
+
+      it "builds codes with the same base prefix" do
+        subject
+        expect(builder.promotion.codes.map(&:value)).to match_array(["abc_nccgrt", "abc_kzwbar"])
+      end
+
+      context 'random code collison' do
+        before { Spree::PromotionBuilder.default_random_code_length = 1 }
+        let(:number_of_codes) { 5 }
+
+        # With a random code length of 1, collisions happen frequently.
+        # with srand(123) it happens after the second iteration.
+        it "will resolve the collision" do
+          subject
+          expect(builder.promotion.codes.map(&:value).uniq.size).to eq number_of_codes
+        end
+      end
+
     end
 
     context "with 0 codes specified" do
@@ -95,56 +133,6 @@ describe Spree::PromotionBuilder do
 
     it "returns true on success" do
       expect(subject).to be_truthy
-    end
-  end
-
-  describe "#build_promotion_codes" do
-    context "when number_of_codes is 1" do
-      subject { builder.build_promotion_codes }
-
-      it "builds one code" do
-        subject
-        expect(builder.promotion.codes.size).to eq 1
-      end
-
-      it "builds one code with the correct value" do
-        subject
-        expect(builder.promotion.codes.map(&:value)).to eq ['abc']
-      end
-    end
-
-    context "when number_of_codes is greater than 1" do
-      subject { builder.build_promotion_codes }
-      before  { srand 123 }
-      let(:number_of_codes) { 2 }
-
-      it "builds the correct number of codes" do
-        subject
-        expect(builder.promotion.codes.size).to eq 2
-      end
-
-      it "builds codes with distinct values" do
-        subject
-        expect(builder.promotion.codes.map(&:value).uniq.size).to eq 2
-      end
-
-      it "builds codes with the same base prefix" do
-        subject
-        expect(builder.promotion.codes.map(&:value)).to match_array(["abc_NCCGRT", "abc_KZWBAR"])
-      end
-
-      context "there is a collision with the random codes generated" do
-        before { Spree::PromotionBuilder.default_random_code_length = 1 }
-        let(:number_of_codes) { 26 }
-
-        # With a random code length of 1, collisions happen frequently.
-        # with srand(123) it happens after the third iteration. Given a different random seed,
-        # we have a 6.5510660712837325e-09 percent chance of it not colliding with 26 iterations.
-        it "will resolve the collision" do
-          subject
-          expect(builder.promotion.codes.map(&:value).uniq.size).to eq number_of_codes
-        end
-      end
     end
   end
 
