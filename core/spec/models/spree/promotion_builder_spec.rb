@@ -6,11 +6,11 @@ describe Spree::PromotionBuilder do
   let(:number_of_codes) { 1 }
   let(:promotion_attrs) { { name: 'some promo' } }
   let(:builder) { Spree::PromotionBuilder.new(
-    promotion_attrs,
     {
       base_code: base_code,
       number_of_codes: number_of_codes
-    }
+    },
+    promotion_attrs,
   ) }
 
   describe '#initialize' do

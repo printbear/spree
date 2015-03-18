@@ -63,7 +63,7 @@ describe Spree::Admin::PromotionsController do
 
       context "with one promo codes" do
         let(:params) do
-          super().merge(bulk_base: 'abc', bulk_number: 1)
+          super().merge(promotion_builder: { base_code: 'abc', number_of_codes: 1 })
         end
 
         it "succeeds and creates one code" do
@@ -79,7 +79,7 @@ describe Spree::Admin::PromotionsController do
 
       context "with multiple promo codes" do
         let(:params) do
-          super().merge(bulk_base: 'abc', bulk_number: 2)
+          super().merge(promotion_builder: { base_code: 'abc', number_of_codes: 2 })
         end
 
         before { srand 123 }
