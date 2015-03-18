@@ -15,7 +15,7 @@ module Spree
         )
         @promotion = @promotion_builder.promotion
 
-        if @promotion_builder.valid? && @promotion_builder.perform
+        if @promotion_builder.perform
           flash[:success] = Spree.t(:successfully_created, resource: @promotion.class.model_name.human)
           redirect_to location_after_save
         else

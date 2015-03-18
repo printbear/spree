@@ -22,6 +22,8 @@ class Spree::PromotionBuilder
   end
 
   def perform
+    return false unless valid?
+
     build_promotion_codes if @base_code && @number_of_codes
     @promotion.save
   end

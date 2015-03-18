@@ -72,6 +72,14 @@ describe Spree::PromotionBuilder do
   describe "#perform" do
     subject { builder.perform }
 
+    context 'builder is invalid' do
+      let(:number_of_codes) { 'sups' }
+
+      it 'returns false' do
+        expect(subject).to_not be
+      end
+    end
+
     context "with 1 or more codes" do
       it "builds promotion codes" do
         subject
