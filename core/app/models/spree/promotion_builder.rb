@@ -29,12 +29,8 @@ class Spree::PromotionBuilder
   # Build promo codes. If @number_of_codes is greater than one then generate
   # multiple codes by adding a random suffix to each code.
   def build_promotion_codes
-    if number_of_codes == 1
-      @promotion.codes.build(value: @base_code)
-    elsif number_of_codes > 1
-      @number_of_codes.times do
-        build_code_with_base
-      end
+    codes.each do |code|
+      @promotion.codes.build(value: code)
     end
   end
 
@@ -43,13 +39,19 @@ class Spree::PromotionBuilder
   end
 
   private
-  def build_code_with_base
-    random_code = code_with_randomness
 
-    if Spree::PromotionCode.where(value: random_code).exists? || @promotion.codes.any? {|c| c.value == random_code }
-      build_code_with_base
+  def codes
+    if number_of_codes == 1
+      [base_code]
     else
-      @promotion.codes.build(value: random_code)
+      random_codes
+    end
+  end
+
+  def random_codes
+    loop do 
+      code_list = number_of_codes.times.map { code_with_randomness }
+      return code_list if Spree::PromotionCode.where(value: code_list).empty?
     end
   end
 
