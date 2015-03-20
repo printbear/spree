@@ -23,6 +23,7 @@ describe Spree::PromotionBuilder do
       expect(subject.number_of_codes).to eq 1
     end
   end
+
   describe '#valid?' do
     subject {  builder.valid? }
 
@@ -72,7 +73,7 @@ describe Spree::PromotionBuilder do
   describe "#perform" do
     subject { builder.perform }
 
-    context 'builder is invalid' do
+    context 'when the builder is invalid' do
       let(:number_of_codes) { 'sups' }
 
       it 'returns false' do
@@ -80,68 +81,38 @@ describe Spree::PromotionBuilder do
       end
     end
 
-    context "with 1 or more codes" do
-      it "builds promotion codes" do
-        subject
-        expect(builder.promotion.codes.length).to eq number_of_codes
-      end
+    context "when the builder is valid" do
+      context "when the builder cant build promotion codes" do
+        let(:number_of_codes) { nil }
 
-      it "builds one code with the correct value" do
-        subject
-        expect(builder.promotion.codes.map(&:value)).to eq ['abc']
-      end
-    end
-
-    context "when number_of_codes is greater than 1" do
-      before  { srand 123 }
-      let(:number_of_codes) { 2 }
-
-      it "builds the correct number of codes" do
-        subject
-        expect(builder.promotion.codes.size).to eq 2
-      end
-
-      it "builds codes with distinct values" do
-        subject
-        expect(builder.promotion.codes.map(&:value).uniq.size).to eq 2
-      end
-
-      it "builds codes with the same base prefix" do
-        subject
-        expect(builder.promotion.codes.map(&:value)).to match_array(["abc_nccgrt", "abc_kzwbar"])
-      end
-
-      context 'random code collison' do
-        before { Spree::PromotionBuilder.default_random_code_length = 1 }
-        let(:number_of_codes) { 5 }
-
-        # With a random code length of 1, collisions happen frequently.
-        # with srand(123) it happens after the second iteration.
-        it "will resolve the collision" do
+        it "doesn't create any new codes" do
           subject
-          expect(builder.promotion.codes.map(&:value).uniq.size).to eq number_of_codes
+          expect(builder.promotion.codes).to be_empty
         end
       end
 
-    end
+      context "when the builder can build promotion codes", focus: true do
+        let(:number_of_codes) { 1 }
 
-    context "with 0 codes specified" do
-      let(:number_of_codes) { 0 }
+        it "creates the correct number of codes" do
+          subject
+          expect(builder.promotion.codes.length).to eq number_of_codes
+        end
 
-      it "builds promotion codes" do
+        it "creates the promotion with the correct code" do
+          subject
+          expect(builder.promotion.codes.first.value).to eq base_code
+        end
+      end
+
+      it "saves the promotion" do
         subject
-        expect(builder.promotion.codes.length).to eq number_of_codes
+        expect(builder.promotion).to be_persisted
+      end
+
+      it "returns true on success" do
+        expect(subject).to be true
       end
     end
-
-    it "saves the promotion" do
-      subject
-      expect(builder.promotion).to be_persisted
-    end
-
-    it "returns true on success" do
-      expect(subject).to be_truthy
-    end
   end
-
 end
