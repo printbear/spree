@@ -51,7 +51,7 @@ class Spree::PromotionBuilder
   end
 
   def random_codes
-    loop do 
+    loop do
       code_list = number_of_codes.times.map { code_with_randomness }
       if code_list.length == code_list.uniq.length && Spree::PromotionCode.where(value: code_list).empty?
         return code_list
@@ -60,7 +60,8 @@ class Spree::PromotionBuilder
   end
 
   def code_with_randomness
-    "#{@base_code}_#{Array.new(Spree::PromotionBuilder.default_random_code_length){ ('a'..'z').to_a.sample }.join}"
+    suffix = Array.new(self.class.default_random_code_length) { sample_random_character }.join
+    "#{@base_code}_#{suffix}"
   end
 
   def promotion_validity
@@ -69,5 +70,10 @@ class Spree::PromotionBuilder
         errors[attribute].push error
       end
     end
+  end
+
+  def sample_random_character
+    @_sample_characters ||= ('a'..'z').to_a
+    @_sample_characters.sample
   end
 end
