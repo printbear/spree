@@ -156,6 +156,13 @@ describe Spree::StockItem do
     end
 
     context "binary_inventory_cache is set to false (default)" do
+      before do
+        @pre_binary_inventory_cache = Spree::Config.binary_inventory_cache
+        Spree::Config.binary_inventory_cache = false
+      end
+
+      after { Spree::Config.binary_inventory_cache = @pre_binary_inventory_cache }
+
       context "in_stock? changes" do
         it "touches its variant" do
           expect do
@@ -174,12 +181,27 @@ describe Spree::StockItem do
     end
 
     context "binary_inventory_cache is set to true" do
-      before { Spree::Config.binary_inventory_cache = true }
+      before do
+        @pre_binary_inventory_cache = Spree::Config.binary_inventory_cache
+        Spree::Config.binary_inventory_cache = true
+      end
+
+      after { Spree::Config.binary_inventory_cache = @pre_binary_inventory_cache }
+
       context "in_stock? changes" do
         it "touches its variant" do
           expect do
             subject.adjust_count_on_hand(subject.count_on_hand * -1)
           end.to change { subject.variant.reload.updated_at }
+        end
+
+        # Regression spec
+        context "stock changes to below zero" do
+          it "touches its variant" do
+            expect do
+              subject.adjust_count_on_hand((subject.count_on_hand * -1) - 1)
+            end.to change { subject.variant.reload.updated_at }
+          end
         end
       end
 
