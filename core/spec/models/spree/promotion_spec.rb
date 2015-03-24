@@ -285,10 +285,12 @@ describe Spree::Promotion do
     end
 
     let!(:adjustment) do
-      Spree::Adjustment.create!(
-        :source => action,
-        :amount => 10,
-        :label => "Promotional adjustment"
+      create(
+        :adjustment,
+        source: action,
+        promotion_code: promotion.codes.first,
+        amount: 10,
+        label: "Promotional adjustment",
       )
     end
 
@@ -562,13 +564,14 @@ describe Spree::Promotion do
     let(:order) { create :order }
     let(:line_item) { create :line_item, order: order }
     let(:promo) { create :promotion_with_item_adjustment, adjustment_rate: 5, code: 'promo' }
+    let(:promotion_code) { promo.codes.first }
     let(:variant) { create :variant }
 
     it "updates the promotions for new line items" do
       expect(line_item.adjustments).to be_empty
       expect(order.adjustment_total).to eq 0
 
-      promo.activate order: order
+      promo.activate order: order, promotion_code: promotion_code
       order.update!
 
       expect(line_item.adjustments).to have(1).item

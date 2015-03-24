@@ -4,6 +4,7 @@ describe "Orders Listing" do
   stub_authorization!
 
   let!(:promotion) { create(:promotion_with_item_adjustment, code: "vnskseiw") }
+  let(:promotion_code) { promotion.codes.first }
 
   before(:each) do
     @order1 = create(:order, :created_at => 1.day.from_now, :completed_at => 1.day.from_now, :number => "R100")
@@ -96,7 +97,10 @@ describe "Orders Listing" do
 
     context "filter on promotions", :js => true do
       before(:each) do
-        @order1.promotions << promotion
+        @order1.order_promotions.build(
+          promotion: promotion,
+          promotion_code: promotion_code,
+        )
         @order1.save
       end
 
