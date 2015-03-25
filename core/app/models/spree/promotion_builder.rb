@@ -10,8 +10,8 @@ class Spree::PromotionBuilder
 
   validate :promotion_validity
 
-  class_attribute :default_random_code_length
-  self.default_random_code_length = 6
+  class_attribute :code_builder_class
+  self.code_builder_class = ::Spree::PromotionCode::CodeBuilder
 
   # @param promotion_attrs [Hash] The desired attributes for the newly promotion
   # @param attributes [Hash] The desired attributes for this builder
@@ -24,44 +24,18 @@ class Spree::PromotionBuilder
   def perform
     return false unless valid?
 
-    build_promotion_codes if @base_code && @number_of_codes
+    if can_build_codes?
+      @promotion.codes = code_builder.build_promotion_codes
+    end
+
     @promotion.save
   end
 
-  def number_of_codes=value
+  def number_of_codes= value
     @number_of_codes = value.presence.try(:to_i)
   end
 
   private
-
-  # Build promo codes. If @number_of_codes is greater than one then generate
-  # multiple codes by adding a random suffix to each code.
-  def build_promotion_codes
-    codes.each do |code|
-      @promotion.codes.build(value: code)
-    end
-  end
-
-  def codes
-    if number_of_codes == 1
-      [base_code]
-    else
-      random_codes
-    end
-  end
-
-  def random_codes
-    loop do 
-      code_list = number_of_codes.times.map { code_with_randomness }
-      if code_list.length == code_list.uniq.length && Spree::PromotionCode.where(value: code_list).empty?
-        return code_list
-      end
-    end
-  end
-
-  def code_with_randomness
-    "#{@base_code}_#{Array.new(Spree::PromotionBuilder.default_random_code_length){ ('a'..'z').to_a.sample }.join}"
-  end
 
   def promotion_validity
     if !@promotion.valid?
@@ -69,5 +43,13 @@ class Spree::PromotionBuilder
         errors[attribute].push error
       end
     end
+  end
+
+  def can_build_codes?
+    @base_code && @number_of_codes
+  end
+
+  def code_builder
+    self.class.code_builder_class.new(@promotion, @base_code, @number_of_codes)
   end
 end
