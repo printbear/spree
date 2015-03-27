@@ -15,20 +15,15 @@ module Spree
     # object with callbacks (otherwise you will end up in an infinite recursion as the
     # associations try to save and then in turn try to call +update!+ again.)
     def update
-      caller_info = caller[0..1].join(',')
-      Rails.logger.info "update_caller=#{caller_info.inspect}"
-
-      benchmark('update') do
-        update_item_count
-        update_totals
-        if order.completed?
-          update_payment_state
-          update_shipments
-          update_shipment_state
-        end
-        run_hooks
-        persist_totals
+      update_item_count
+      update_totals
+      if order.completed?
+        update_payment_state
+        update_shipments
+        update_shipment_state
       end
+      run_hooks
+      persist_totals
     end
 
     def run_hooks
@@ -187,15 +182,6 @@ module Spree
     end
 
     private
-
-      def benchmark(label)
-        result = nil
-        duration = Benchmark.ms do
-          result = yield
-        end
-        Rails.logger.info("#{label}_ms=#{duration}")
-        result
-      end
 
       def round_money(n)
         (n * 100).round / 100.0
