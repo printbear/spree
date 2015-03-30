@@ -57,7 +57,9 @@ describe "New Order" do
     click_on "ship"
     wait_for_ajax
 
-    page.should have_content("shipped")
+    within '.carton-state' do
+      page.should have_content('SHIPPED')
+    end
   end
 
   context "adding new item to the order", js: true do
