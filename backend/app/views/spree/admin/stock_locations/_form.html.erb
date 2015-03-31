@@ -5,6 +5,10 @@
         <%= f.label :name, Spree.t(:name) %> <span class="required">*</span><br />
         <%= f.text_field :name, :class => 'fullwidth' %>
       <% end %><br>
+      <%= f.field_container :code do %>
+        <%= f.label :code, Spree.t(:code) %>
+        <%= f.text_field :code, :class => 'fullwidth', :label => false %>
+      <% end %><br>
       <%= f.field_container :admin_name do %>
         <%= f.label :admin_name, Spree.t(:internal_name) %>
         <%= f.text_field :admin_name, :class => 'fullwidth', :label => false %>
