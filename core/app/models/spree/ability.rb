@@ -60,6 +60,8 @@ module Spree
         can :create, Spree.user_class
         can [:read, :update, :destroy], Spree.user_class, id: user.id
         can [:index, :read], State
+        can [:index, :read], StockItem, stock_location: { active: true }
+        can [:index, :read], StockLocation, active: true
         can [:index, :read], Taxon
         can [:index, :read], Taxonomy
         can [:index, :read], Variant
