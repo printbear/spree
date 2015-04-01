@@ -166,16 +166,16 @@ describe Spree::StockItem do
       context "in_stock? changes" do
         it "touches its variant" do
           expect do
-            subject.adjust_count_on_hand(subject.count_on_hand * -1)
-          end.to change { subject.variant.reload.updated_at }
+            subject.set_count_on_hand(0)
+          end.to change { subject.variant.updated_at }
         end
       end
 
       context "in_stock? does not change" do
         it "touches its variant" do
           expect do
-            subject.adjust_count_on_hand((subject.count_on_hand * -1) + 1)
-          end.to change { subject.variant.reload.updated_at }
+            subject.set_count_on_hand(-1)
+          end.to change { subject.variant.updated_at }
         end
       end
     end
@@ -191,16 +191,16 @@ describe Spree::StockItem do
       context "in_stock? changes" do
         it "touches its variant" do
           expect do
-            subject.adjust_count_on_hand(subject.count_on_hand * -1)
-          end.to change { subject.variant.reload.updated_at }
+            subject.set_count_on_hand(0)
+          end.to change { subject.variant.updated_at }
         end
 
         # Regression spec
         context "stock changes to below zero" do
           it "touches its variant" do
             expect do
-              subject.adjust_count_on_hand((subject.count_on_hand * -1) - 1)
-            end.to change { subject.variant.reload.updated_at }
+              subject.set_count_on_hand(-1)
+            end.to change { subject.variant.updated_at }
           end
         end
       end
@@ -209,7 +209,7 @@ describe Spree::StockItem do
         it "does not touch its variant" do
           expect do
             subject.adjust_count_on_hand((subject.count_on_hand * -1) + 1)
-          end.not_to change { subject.variant.reload.updated_at }
+          end.not_to change { subject.variant.updated_at }
         end
       end
 
