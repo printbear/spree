@@ -19,7 +19,7 @@ module Spree
     # Returns nil in the case of no matches.
     def self.match(address)
       return unless matches = self.includes(:zone_members).
-        order('zone_members_count', 'created_at').
+        order('zone_members_count', 'created_at', 'id').
         select { |zone| zone.include? address }
 
       ['state', 'country'].each do |zone_kind|
