@@ -209,7 +209,7 @@ describe Spree::StockItem do
         it "does not touch its variant" do
           expect do
             subject.adjust_count_on_hand((subject.count_on_hand * -1) + 1)
-          end.not_to change { subject.variant.updated_at }
+          end.not_to change { subject.reload.variant.updated_at }
         end
       end
 
