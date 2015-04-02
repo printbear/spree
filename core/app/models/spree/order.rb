@@ -236,6 +236,10 @@ module Spree
       @shipping ||= Spree::OrderShipping.new(self)
     end
 
+    def cancellations
+      @cancellations ||= Spree::OrderCancellations.new(self)
+    end
+
     def associate_user!(user, override_email = true)
       ActiveSupport::Deprecation.warn("Use OrderContents#associate_user instead. Called by #{caller.first}")
       contents.associate_user(user, override_email)
