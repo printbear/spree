@@ -27,6 +27,8 @@ module Spree
     belongs_to :order, :class_name => "Spree::Order"
     belongs_to :promotion_code, :class_name => 'Spree::PromotionCode'
 
+    validates :adjustable, presence: true
+    validates :order, presence: true
     validates :label, presence: true
     validates :amount, numericality: true
     validates :promotion_code, presence: true, if: :require_promotion_code?
@@ -106,7 +108,7 @@ module Spree
 
     def update_adjustable_adjustment_total
       # Cause adjustable's total to be recalculated
-      Spree::ItemAdjustments.new(adjustable).update if adjustable
+      ItemAdjustments.new(adjustable).update
     end
 
     def require_promotion_code?

@@ -86,8 +86,11 @@ module Spree
           return [] unless adjustments
           adjustments.each do |a|
             begin
-              adjustment = order.adjustments.build(:amount => a[:amount].to_f,
-                                                  :label => a[:label])
+              adjustment = order.adjustments.build(
+                order:  order,
+                amount: a[:amount].to_d,
+                label:  a[:label]
+              )
               adjustment.save!
               adjustment.close!
             rescue Exception => e
@@ -102,7 +105,7 @@ module Spree
             begin
               payment, success = order.contents.add_payment(
                 payment_params: {
-                  amount: p[:amount].to_f,
+                  amount: p[:amount].to_d,
                   state: p.fetch(:state, 'completed'),
                   payment_method: Spree::PaymentMethod.find_by_name!(p[:payment_method])
                 }

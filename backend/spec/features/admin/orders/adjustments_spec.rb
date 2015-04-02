@@ -20,7 +20,7 @@ describe "Adjustments" do
       :amount => 10)
   end
 
-  let!(:adjustment) { order.adjustments.create!(label: 'Rebate', amount: 10) }
+  let!(:adjustment) { order.adjustments.create!(order: order, label: 'Rebate', amount: 10) }
 
   before(:each) do
     # To ensure the order totals are correct
@@ -58,6 +58,10 @@ describe "Adjustments" do
         click_button "Continue"
         page.should have_content("successfully created!")
         page.should have_content("Total: $90.00")
+
+        order.reload.all_adjustments.each do |adjustment|
+          expect(adjustment.order_id).to equal(order.id)
+        end
       end
     end
 
@@ -103,7 +107,7 @@ describe "Adjustments" do
       end
     end
   end
-  
+
   context "deleting an adjustment" do
     it "should not be possible if adjustment is closed" do
       within_row(1) do
