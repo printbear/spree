@@ -46,7 +46,7 @@ module Spree
     alias_attribute :ship_total, :shipment_total
 
     has_many :state_changes, as: :stateful
-    has_many :line_items, -> { order('created_at ASC') }, dependent: :destroy, inverse_of: :order
+    has_many :line_items, -> { order('created_at', 'id') }, dependent: :destroy, inverse_of: :order
     has_many :payments, dependent: :destroy
     has_many :return_authorizations, dependent: :destroy
     has_many :reimbursements, inverse_of: :order
