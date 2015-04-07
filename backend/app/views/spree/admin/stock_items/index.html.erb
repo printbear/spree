@@ -1,0 +1,21 @@
+<% content_for :page_title do %>
+  <%= Spree.t(:manage_stock) %>
+<% end %>
+
+<% content_for :table_filter_title do %>
+  <%= Spree.t(:search) %>
+<% end %>
+
+<% content_for :table_filter do %>
+  <%= render :partial => 'spree/admin/shared/variant_search', :locals => { :form_path => admin_stock_items_path, :stock_locations => @stock_locations } %>
+<% end %>
+
+<% if @variants.any? %>
+  <%= render :partial => 'spree/admin/shared/stock_management', :locals => { :variants => @variants } %>
+<% else %>
+  <div class="fullwidth no-objects-found">
+    <%= Spree.t(:no_variants_found) %>
+    <br/>
+    <%= Spree.t(:try_changing_search_values) %>
+  </div>
+<% end %>

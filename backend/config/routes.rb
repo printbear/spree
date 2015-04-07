@@ -158,7 +158,7 @@ Spree::Core::Engine.add_routes do
       end
     end
 
-    resources :stock_items, :only => [:create, :update, :destroy]
+    resources :stock_items, :except => [:show, :new, :edit]
     resources :tax_rates
     resource  :tax_settings
 

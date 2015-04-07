@@ -1,10 +1,11 @@
 module Spree
   module Admin
     class ProductsController < ResourceController
+      include Spree::Admin::Concerns::StockManagement
       helper 'spree/products'
 
       before_filter :load_data, :except => [:index, :stock]
-      before_filter :load_variants, :only => :stock
+      before_filter :load_stock_management_data, only: :stock
       create.before :create_before
       update.before :update_before
       helper_method :clone_object_url
@@ -67,9 +68,10 @@ module Spree
       end
 
       def stock
-        @hide_out_of_stock = params[:hide_out_of_stock]
-        @option_values = @product.variants.flat_map(&:option_values).uniq
-        @stock_locations = StockLocation.accessible_by(current_ability, :update)
+        if @stock_locations.empty?
+          flash[:error] = Spree.t(:stock_management_requires_a_stock_location)
+          redirect_to admin_stock_locations_path
+        end
       end
 
       protected
@@ -87,20 +89,6 @@ module Spree
           @option_types = OptionType.order(:name)
           @tax_categories = TaxCategory.order(:name)
           @shipping_categories = ShippingCategory.order(:name)
-        end
-
-        def load_variants
-          @sku = params[:sku] || ""
-          @selected_option_value_ids = (params[:option_value_ids] || []).reject(&:blank?)
-          if @sku.present?
-            @variants = Spree::Variant.where(sku: @sku)
-          elsif @selected_option_value_ids.present?
-            @variants = @product.variants.joins(:option_values).where(spree_option_values: { id: @selected_option_value_ids }).group("spree_variants.id").having("count(spree_option_values.id) = ?", @selected_option_value_ids.length)
-          else
-            @variants = @product.variants
-            @variants = Kaminari.paginate_array([@product.master]) if @variants.empty?
-          end
-          @variants = @variants.page(params[:page]).per(Spree::Config[:admin_variants_per_page])
         end
 
         def collection
@@ -143,6 +131,10 @@ module Spree
 
         def permit_attributes
           params.require(:product).permit!
+        end
+
+        def variant_scope
+          @product.variants
         end
     end
   end

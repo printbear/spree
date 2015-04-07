@@ -1,7 +1,10 @@
 module Spree
   module Admin
     class StockItemsController < ResourceController
+      include Spree::Admin::Concerns::StockManagement
+
       update.before :determine_backorderable
+      before_filter :load_stock_management_data, only: :index
 
       private
 
@@ -32,6 +35,10 @@ module Spree
 
         def determine_backorderable
           @stock_item.backorderable = params[:stock_item].present? && params[:stock_item][:backorderable].present?
+        end
+
+        def variant_scope
+          Spree::Variant.all
         end
     end
   end

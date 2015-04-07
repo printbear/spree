@@ -30,88 +30,85 @@
 }
 
 #listing_product_stock {
+  margin-left: 0px;
+  margin-right: 0px;
+
+  a.fa-void,
+  a.fa-check,
+  .js-stock-item-count {
+    display: none;
+  }
+
+  .stock-variant-field-table {
+    tr td {
+      padding: 2px;
+      border: none;
+      text-align: left;
+    }
+    tr td:first-child {
+      font-weight: bold;
+    }
+    margin-bottom: 0px;
+  }
+
+  th {
+    border-bottom: 1px solid $color-border;
+  }
+
   > tbody {
     > tr {
-      &.even {
-        td {
-          background-color: $color-tbl-even;
-        }
-      }
-      &.odd:hover > td {
-        background-color: $color-tbl-even;
-      }
       > td {
         background-color: $color-tbl-odd;
-
-        > table {
-          > tbody {
-            > tr {
-              > td {
-                border-color: lighten($color-border, 4);
-              }
-            }
-            > tr.even {
-              td {
-                background-color: lighten($color-tbl-even, 2);
-              }
-            }
-            > tr.odd {
-              td {
-                background-color: $color-tbl-odd;
-              }
-            }
+      }
+      &.even td {
+        background-color: $color-tbl-even;
+      }
+      &:hover {
+        .stock-variant-field-table {
+          td {
+            background-color: $color-1;
           }
+        }
+      }
+      &:first-child {
+        td {
+          border-top: none;
         }
       }
     }
+    .variant-image {
+      width: 35%;
+    }
+    .variant-details {
+      width: 65%;
+      padding: 0px 5px;
+    }
+    .variant-image,
+    .variant-details,
+    .variant-container {
+      float: left;
+    }
+    .variant-container {
+      padding-top: 10px;
+    }
   }
   td {
-    vertical-align: top;
+    vertical-align: middle;
 
-    &.stock_location_info {
-      padding: 0;
-
-      table {
-        margin-bottom: 0;
-        border-collapse: collapse;
-        min-height: 102px;
-
-        thead {
-          th {
-            border-top: none;
-            padding: 5px 10px;
-            text-transform: none;
-
-            &:first-child {
-              border-left: none;
-            }
-            &:last-child {
-              border-right: none;
-            }
-          }
-        }
-        tbody {
-          tr {
-            td {
-              padding: 5px 10px;
-              vertical-align: middle;
-
-              &:first-child {
-                border-left: none;
-              }
-              &:last-child {
-                border-right: none;
-              }
-            }
-
-            &:last-child {
-              td {
-                border-bottom: none;
-              }
-            }
-          }
-        }
+    &.location-name-cell {
+      border-left: none;
+      .select2-container {
+        width: 180px;
       }
+    }
+
+    input.error {
+      border-color: $color-error;
+    }
+
+    .select2-container.error {
+      border-radius: 4px;
+      border: 1px solid $color-error;
     }
   }
 }
