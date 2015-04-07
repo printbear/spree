@@ -374,6 +374,7 @@ en:
     add_stock: Add Stock
     add_stock_management: Add Stock Management
     add_to_cart: Add To Cart
+    add_to_stock_location: Add to location
     add_variant: Add Variant
     additional_item: Additional Item Cost
     address1: Address
@@ -482,6 +483,7 @@ en:
     back_to_users_list: Back To Users List
     back_to_zones_list: Back To Zones List
     backorderable: Backorderable
+    backorderable_header: Back orderable
     backorders_allowed: backorders allowed
     balance_due: Balance Due
     base_amount: Base Amount
@@ -570,6 +572,7 @@ en:
     create_new_order: Create new order
     create_reimbursement: Create reimbursement
     created_at: Created At
+    created_successfully: Created successfully
     credit: Credit
     credits: Credits
     credit_card: Credit Card
@@ -881,6 +884,7 @@ en:
     no_trackers_found: No Trackers Found
     no_stock_locations_found: No stock locations found
     no_tracking_present: No tracking details provided.
+    no_variants_found: No variants found.
     none: None
     none_selected: None Selected
     normal_amount: Normal Amount
@@ -1332,6 +1336,7 @@ en:
     transfer_to_location: Transfer To
     transfer_number: Transfer Number
     tree: Tree
+    try_changing_search_values: Try changing the search values.
     type: Type
     type_to_search: Type to search
     unable_to_find_all_inventory_units: Unable to find all specified inventory units
@@ -1342,6 +1347,7 @@ en:
     unrecognized_card_type: Unrecognized card type
     unshippable_items: Unshippable Items
     update: Update
+    updated_successfully: Updated successfully
     updating: Updating
     usage_limit: Usage Limit
     use_app_default: Use App Default
@@ -1364,6 +1370,7 @@ en:
     variant: Variant
     variant_placeholder: Choose a variant
     variant_search: Variant Search
+    variant_search_placeholder: "SKU or Option Value"
     variants: Variants
     version: Version
     void: Void

@@ -16,7 +16,7 @@ describe "Shipping Methods" do
     create(:check_payment_method, :environment => 'test')
 
     visit spree.admin_path
-    click_link "Configuration"
+    click_link "Settings"
     click_link "Shipping Methods"
   end
 
