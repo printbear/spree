@@ -7,8 +7,6 @@ module Spree
 
       rescue_from Spree::LineItem::InsufficientStock, with: :insufficient_stock_for_line_items
 
-      include Spree::Core::ControllerHelpers::Auth
-
       def next
         authorize! :update, @order, order_token
         @order.next!
