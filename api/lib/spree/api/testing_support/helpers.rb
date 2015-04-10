@@ -7,13 +7,13 @@ module Spree
         end
 
         def assert_not_found!
-          json_response.should == { "error" => "The resource you were looking for could not be found." }
-          response.status.should == 404
+          expect(json_response).to eq({ "error" => "The resource you were looking for could not be found." })
+          expect(response.status).to eq 404
         end
 
         def assert_unauthorized!
-          json_response.should == { "error" => "You are not authorized to perform that action." }
-          response.status.should == 401
+          expect(json_response).to eq({ "error" => "You are not authorized to perform that action." })
+          expect(response.status).to eq 401
         end
 
         def stub_authentication!
@@ -23,7 +23,7 @@ module Spree
         # This method can be overriden (with a let block) inside a context
         # For instance, if you wanted to have an admin user instead.
         def current_api_user
-          @current_api_user ||= stub_model(Spree::LegacyUser, :email => "spree@example.com")
+          @current_api_user ||= stub_model(Spree::LegacyUser, email: "spree@example.com")
         end
 
         def image(filename)

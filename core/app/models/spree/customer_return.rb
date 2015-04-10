@@ -20,7 +20,7 @@ module Spree
                   total: { currency: Spree::Config[:currency] }
 
     def total
-      return_items.sum(&:total)
+      return_items.to_a.sum(&:total)
     end
 
     def pre_tax_total
