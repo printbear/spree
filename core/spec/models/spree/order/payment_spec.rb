@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module Spree
   describe Spree::Order do
-    let(:order) { create(:order_with_line_items) }
+    let(:order) { create(:order_with_line_items, line_items_count: 5) }
     let(:updater) { Spree::OrderUpdater.new(order) }
 
     before do

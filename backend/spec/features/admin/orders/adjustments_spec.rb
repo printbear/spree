@@ -3,7 +3,7 @@ require 'spec_helper'
 describe "Adjustments" do
   stub_authorization!
 
-  let!(:order) { create(:completed_order_with_totals) }
+  let!(:order) { create(:completed_order_with_totals, line_items_count: 1) }
   let!(:line_item) do
     line_item = order.line_items.first
     # so we can be sure of a determinate price in our assertions
@@ -57,7 +57,7 @@ describe "Adjustments" do
         fill_in "adjustment_label", :with => "rebate"
         click_button "Continue"
         page.should have_content("successfully created!")
-        page.should have_content("Total: $90.00")
+        page.should have_content("Total: $50.00")
 
         order.reload.all_adjustments.each do |adjustment|
           expect(adjustment.order_id).to equal(order.id)
@@ -93,7 +93,7 @@ describe "Adjustments" do
           page.should have_content("$99.00")
         end
 
-        page.should have_content("Total: $169.00")
+        page.should have_content("Total: $129.00")
       end
     end
 
@@ -122,7 +122,7 @@ describe "Adjustments" do
         end
       end
 
-      page.should have_content(/TOTAL: ?\$80\.00/)
+      page.should have_content(/TOTAL: ?\$40\.00/)
     end
   end
 end

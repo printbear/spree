@@ -14,7 +14,7 @@ describe 'Payments' do
       )
     end
 
-    let(:order) { create(:completed_order_with_totals, number: 'R100') }
+    let(:order) { create(:completed_order_with_totals, number: 'R100', line_items_count: 1) }
     let(:state) { 'checkout' }
 
     before do
@@ -69,7 +69,7 @@ describe 'Payments' do
     it 'should be able to list and create payment methods for an order', js: true do
       find('#payment_status').text.should == 'PENDING'
       within_row(1) do
-        column_text(3).should == '$150.00'
+        column_text(3).should == '$110.00'
         column_text(4).should == 'Credit Card'
         column_text(6).should == 'CHECKOUT'
       end
@@ -81,7 +81,7 @@ describe 'Payments' do
       page.should have_content('Payment Updated')
 
       within_row(1) do
-        column_text(3).should == '$150.00'
+        column_text(3).should == '$110.00'
         column_text(4).should == 'Credit Card'
         column_text(6).should == 'VOID'
       end

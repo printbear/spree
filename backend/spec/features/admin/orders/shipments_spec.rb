@@ -3,7 +3,7 @@ require 'spec_helper'
 describe "Shipments" do
   stub_authorization!
 
-  let!(:order) { create(:order_ready_to_ship, :number => "R100", :state => "complete") }
+  let!(:order) { create(:order_ready_to_ship, :number => "R100", :state => "complete", :line_items_count => 1) }
 
   # Regression test for #4025
   context "a shipment without a shipping method" do
@@ -38,6 +38,7 @@ describe "Shipments" do
   end
 
   context "moving variants between shipments", js: true do
+    let!(:order) { create(:order_ready_to_ship, :number => "R100", :state => "complete", :line_items_count => 5) }
     let!(:la) { create(:stock_location, name: "LA") }
     before(:each) do
       visit spree.admin_path
