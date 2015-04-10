@@ -51,14 +51,14 @@ module Spree
 
         def scope
           if @product
-            unless current_api_user.has_spree_role?('admin') || params[:show_deleted]
+            unless is_admin? || params[:show_deleted]
               variants = @product.variants_including_master.accessible_by(current_ability, :read)
             else
               variants = @product.variants_including_master.with_deleted.accessible_by(current_ability, :read)
             end
           else
             variants = Variant.accessible_by(current_ability, :read)
-            if current_api_user.has_spree_role?('admin')
+            if is_admin?
               unless params[:show_deleted]
                 variants = Variant.accessible_by(current_ability, :read).active
               end
