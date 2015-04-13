@@ -55,7 +55,7 @@ module Spree
           }
 
           api_post :create, params
-          response.status.should == 401
+          response.status.should == 404
         end
       end
 
@@ -134,14 +134,19 @@ module Spree
           expect(json_response).to have_attributes(attributes)
         end
 
+        it 'creates a stock movement' do
+          expect { subject }.to change { Spree::StockMovement.count }.by(1)
+          expect(Spree::StockMovement.last.quantity).to eq 20
+        end
+
         context 'variant tracks inventory' do
           before do
             expect(variant.track_inventory).to eq true
           end
 
-          it 'creates a stock movement' do
-            expect { subject }.to change { Spree::StockMovement.count }.by(1)
-            expect(Spree::StockMovement.last.quantity).to eq 20
+          it "sets the stock item's count_on_hand" do
+            subject
+            expect(Spree::StockItem.last.count_on_hand).to eq 20
           end
         end
 
@@ -150,8 +155,9 @@ module Spree
             variant.update_attributes(track_inventory: false)
           end
 
-          it 'does not create a stock movement' do
-            expect { subject }.not_to change { Spree::StockMovement.count }
+          it "doesn't set the stock item's count_on_hand" do
+            subject
+            expect(Spree::StockItem.last.count_on_hand).to eq 0
           end
         end
       end
@@ -181,14 +187,19 @@ module Spree
             expect(json_response['backorderable']).to eq true
           end
 
+          it 'creates a stock movement for the adjusted quantity' do
+            expect { subject }.to change { Spree::StockMovement.count }.by(1)
+            expect(Spree::StockMovement.last.quantity).to eq 40
+          end
+
           context 'tracking inventory' do
             before do
               expect(stock_item.should_track_inventory?).to eq true
             end
 
-            it 'creates a stock movement for the adjusted quantity' do
-              expect { subject }.to change { Spree::StockMovement.count }.by(1)
-              expect(Spree::StockMovement.last.quantity).to eq 40
+             it "sets the stock item's count_on_hand" do
+              subject
+              expect(stock_item.reload.count_on_hand).to eq 50
             end
           end
 
@@ -197,8 +208,9 @@ module Spree
               stock_item.variant.update_attributes(track_inventory: false)
             end
 
-            it 'does not create a stock movement for the adjusted quantity' do
-              expect { subject }.not_to change { Spree::StockMovement.count }
+            it "doesn't set the stock item's count_on_hand" do
+              subject
+              expect(stock_item.reload.count_on_hand).to eq 10
             end
           end
         end
@@ -220,14 +232,19 @@ module Spree
             expect(json_response['count_on_hand']).to eq 40
           end
 
+          it 'creates a stock movement for the adjusted quantity' do
+            expect { subject }.to change { Spree::StockMovement.count }.by(1)
+            expect(Spree::StockMovement.last.quantity).to eq 30
+          end
+
           context 'tracking inventory' do
             before do
               expect(stock_item.should_track_inventory?).to eq true
             end
 
-            it 'creates a stock movement for the adjusted quantity' do
-              expect { subject }.to change { Spree::StockMovement.count }.by(1)
-              expect(Spree::StockMovement.last.quantity).to eq 30
+            it "updates the stock item's count_on_hand" do
+              subject
+              expect(stock_item.reload.count_on_hand).to eq 40
             end
           end
 
@@ -236,8 +253,9 @@ module Spree
               stock_item.variant.update_attributes(track_inventory: false)
             end
 
-            it 'does not create a stock movement for the adjusted quantity' do
-              expect { subject }.not_to change { Spree::StockMovement.count }
+            it "doesn't update the stock item's count_on_hand" do
+              subject
+              expect(stock_item.reload.count_on_hand).to eq 10
             end
           end
         end
