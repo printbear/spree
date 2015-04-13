@@ -42,45 +42,4 @@ describe Spree::Admin::ProductsController do
       end
     end
   end
-
-  context "stock" do
-    let!(:product) { create(:product) }
-    let!(:variant_1) { create(:variant, product: product) }
-    let!(:variant_2) { create(:variant, product: product, option_values: variant_1.option_values) }
-    let!(:variant_3) { create(:variant, product: product, option_values: []) }
-
-    subject { spree_get :stock, { variant_search_term: search_term, id: product.slug } }
-
-    it "restricts stock location based on accessible attributes" do
-      Spree::StockLocation.should_receive(:accessible_by).and_return([])
-      spree_get :stock, :id => product
-    end
-
-    context "with a given sku" do
-      let(:search_term) { variant_1.sku }
-
-      it "finds the correct variants" do
-        subject
-        expect(assigns(:variants)).to match_array [variant_1]
-      end
-    end
-
-    context "with an option value" do
-      let(:search_term) { variant_1.option_values.first.presentation }
-
-      it "finds the correct variants" do
-        subject
-        expect(assigns(:variants)).to match_array [variant_1, variant_2]
-      end
-    end
-
-    context "with no search term" do
-      let(:search_term) { "" }
-
-      it "finds all variants associated to the product" do
-        subject
-        expect(assigns(:variants)).to match_array product.variants
-      end
-    end
-  end
 end
