@@ -38,7 +38,7 @@ module Spree
         end
 
         def variant_scope
-          Spree::Variant.all
+          Spree::Variant.accessible_by(current_ability, :read)
         end
     end
   end
