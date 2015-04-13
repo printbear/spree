@@ -58,6 +58,10 @@ module Spree
           scope = scope.where(product: @product) if @product
           scope
         end
+
+        def collection
+          []
+        end
     end
   end
 end
