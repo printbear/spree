@@ -4,7 +4,7 @@ module Spree
   describe Api::LineItemsController do
     render_views
 
-    let!(:order) { create(:order_with_line_items) }
+    let!(:order) { create(:order_with_line_items, line_items_count: 1) }
 
     let(:product) { create(:product) }
     let(:attributes) { [:id, :quantity, :price, :variant, :total, :display_amount, :single_display_amount] }
@@ -55,7 +55,7 @@ module Spree
         api_post :create, :line_item => { :variant_id => product.master.to_param, :quantity => 1 }
         response.status.should == 201
         order.reload
-        order.line_items.count.should == 6 # 5 original due to factory, + 1 in this test
+        order.line_items.count.should == 2 # 1 originally + 1 in this test
         json_response.should have_attributes(attributes)
         json_response["quantity"].should == 11
       end
@@ -65,7 +65,7 @@ module Spree
         api_put :update, :id => line_item.id, :line_item => { :quantity => 101 }
         response.status.should == 200
         order.reload
-        order.total.should == 1050 # 50 original due to factory, + 1000 in this test
+        order.total.should == 1010 # 10 originally + 1000 in this test
         json_response.should have_attributes(attributes)
         json_response["quantity"].should == 101
       end
@@ -75,7 +75,7 @@ module Spree
         api_delete :destroy, :id => line_item.id
         response.status.should == 204
         order.reload
-        order.line_items.count.should == 4 # 5 original due to factory, - 1 in this test
+        order.line_items.count.should == 0 # 1 originally - 1 in this test
         lambda { line_item.reload }.should raise_error(ActiveRecord::RecordNotFound)
       end
 

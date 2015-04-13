@@ -21,7 +21,7 @@ FactoryGirl.define do
       ship_address
 
       transient do
-        line_items_count 5
+        line_items_count 1
         shipment_cost 100
       end
 
