@@ -1,10 +1,14 @@
 module Spree
   module Admin
     class StockItemsController < ResourceController
-      include Spree::Admin::Concerns::StockManagement
+      class_attribute :variant_display_attributes
+      self.variant_display_attributes = [
+        { string_key: :sku, attr_name: :sku },
+        { string_key: :name, attr_name: :name }
+      ]
 
       update.before :determine_backorderable
-      before_filter :load_stock_management_data, only: :index
+      before_action :load_product, :load_stock_management_data, only: :index
 
       private
 
@@ -37,8 +41,22 @@ module Spree
           @stock_item.backorderable = params[:stock_item].present? && params[:stock_item][:backorderable].present?
         end
 
+        def load_product
+          @product = Product.accessible_by(current_ability, :read).friendly.find(params[:product_slug]) if params[:product_slug]
+        end
+
+        def load_stock_management_data
+          @stock_locations = Spree::StockLocation.accessible_by(current_ability, :read)
+          @stock_item_stock_locations = params[:stock_location_id].present? ? @stock_locations.where(id: params[:stock_location_id]) : @stock_locations
+          @variant_display_attributes = self.class.variant_display_attributes
+          variants_results = Spree::Core::Search::Variant.new(params[:variant_search_term], scope: variant_scope).results
+          @variants = variants_results.order(id: :desc).page(params[:page]).per(params[:per_page] || Spree::Config[:orders_per_page])
+        end
+
         def variant_scope
-          Spree::Variant.accessible_by(current_ability, :read)
+          scope = Spree::Variant.accessible_by(current_ability, :read)
+          scope = scope.where(product: @product) if @product
+          scope
         end
     end
   end

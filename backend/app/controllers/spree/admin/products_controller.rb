@@ -1,11 +1,9 @@
 module Spree
   module Admin
     class ProductsController < ResourceController
-      include Spree::Admin::Concerns::StockManagement
       helper 'spree/products'
 
-      before_filter :load_data, :except => [:index, :stock]
-      before_filter :load_stock_management_data, only: :stock
+      before_filter :load_data, :except => [:index]
       create.before :create_before
       update.before :update_before
       helper_method :clone_object_url
@@ -65,13 +63,6 @@ module Spree
         end
 
         redirect_to edit_admin_product_url(@new)
-      end
-
-      def stock
-        if @stock_locations.empty?
-          flash[:error] = Spree.t(:stock_management_requires_a_stock_location)
-          redirect_to admin_stock_locations_path
-        end
       end
 
       protected

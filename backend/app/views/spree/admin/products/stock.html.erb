@@ -11,7 +11,7 @@
 <% end %>
 
 <% content_for :table_filter do %>
-  <%= render :partial => 'spree/admin/shared/variant_search', :locals => { :form_path => stock_admin_product_path, :stock_locations => @stock_locations } %>
+  <%= render :partial => 'spree/admin/shared/variant_search', :locals => { :form_path => admin_product_stock_path, :stock_locations => @stock_locations } %>
 <% end %>
 
 <% content_for :fullwidth_content_with_sidebar do %>
