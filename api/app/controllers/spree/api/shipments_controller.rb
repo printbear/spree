@@ -10,7 +10,7 @@ module Spree
       before_filter :load_transfer_params, only: [:transfer_to_location, :transfer_to_shipment]
 
       def mine
-        if current_api_user.persisted?
+        if current_api_user
           @shipments = Spree::Shipment
             .reverse_chronological
             .joins(:order)

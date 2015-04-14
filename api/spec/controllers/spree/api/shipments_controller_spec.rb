@@ -52,7 +52,7 @@ describe Spree::Api::ShipmentsController do
       response.status.should == 200
       json_response['stock_location_name'].should == stock_location.name
     end
-    
+
     it "can make a shipment ready" do
       Spree::Order.any_instance.stub(:paid? => true, :complete? => true)
       api_put :ready
@@ -155,8 +155,8 @@ describe Spree::Api::ShipmentsController do
         end
       end
 
-      context "the current api user is not persisted" do
-        let(:current_api_user) { Spree.user_class.new }
+      context "the current api user does not exist" do
+        let(:current_api_user) { nil }
 
         it "returns a 401" do
           response.status.should == 401
