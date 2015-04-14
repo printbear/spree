@@ -63,7 +63,7 @@ module Spree
       end
 
       def count_on_hand_adjustment
-        params[:stock_item].has_key?(:count_on_hand) ? params[:stock_item][:count_on_hand].to_i : 0
+        params[:stock_item][:count_on_hand].to_i
       end
 
       def adjust_stock_item_count_on_hand(count_on_hand_adjustment)
