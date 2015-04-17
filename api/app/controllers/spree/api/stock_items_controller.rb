@@ -18,10 +18,13 @@ module Spree
 
         @stock_item = scope.new(stock_item_params)
 
-        if create_stock_item
-          respond_with(@stock_item, status: 201, default_template: :show)
-        else
-          invalid_resource!(@stock_item)
+        Spree::StockItem.transaction do
+          if @stock_item.save
+            adjust_stock_item_count_on_hand(count_on_hand_adjustment)
+            respond_with(@stock_item, status: 201, default_template: :show)
+          else
+            invalid_resource!(@stock_item)
+          end
         end
       end
 
@@ -33,10 +36,13 @@ module Spree
         params[:stock_item].delete(:count_on_hand)
         adjustment -= @stock_item.count_on_hand if params[:stock_item][:force]
 
-        if update_stock_item(adjustment)
-          respond_with(@stock_item, status: 200, default_template: :show)
-        else
-          invalid_resource!(@stock_item)
+        Spree::StockItem.transaction do
+          if @stock_item.update_attributes(stock_item_params)
+            adjust_stock_item_count_on_hand(adjustment)
+            respond_with(@stock_item, status: 200, default_template: :show)
+          else
+            invalid_resource!(@stock_item)
+          end
         end
       end
 
@@ -60,26 +66,6 @@ module Spree
 
       def stock_item_params
         params.require(:stock_item).permit(permitted_stock_item_attributes)
-      end
-
-      def create_stock_item
-        success = false
-        Spree::StockItem.transaction do
-          @stock_item.save!
-          adjust_stock_item_count_on_hand(count_on_hand_adjustment)
-          success = true
-        end
-        success
-      end
-
-      def update_stock_item(adjustment)
-        success = false
-        Spree::StockItem.transaction do
-          @stock_item.update_attributes!(stock_item_params)
-          adjust_stock_item_count_on_hand(adjustment)
-          success = true
-        end
-        success
       end
 
       def count_on_hand_adjustment
