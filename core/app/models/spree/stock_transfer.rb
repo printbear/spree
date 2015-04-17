@@ -1,14 +1,33 @@
 module Spree
   class StockTransfer < ActiveRecord::Base
     has_many :stock_movements, :as => :originator
+    has_many :transfer_items
 
-    belongs_to :source_location, :class_name => 'StockLocation'
-    belongs_to :destination_location, :class_name => 'StockLocation'
+    belongs_to :created_by, :class_name => 'Spree::User'
+    belongs_to :closed_by, :class_name => 'Spree::User'
+    belongs_to :source_location, :class_name => 'Spree::StockLocation'
+    belongs_to :destination_location, :class_name => 'Spree::StockLocation'
 
     make_permalink field: :number, prefix: 'T'
 
+    def closed?
+      closed_at.present?
+    end
+
     def to_param
       number
+    end
+
+    def ship(tracking_number: tracking_number, shipped_at: shipped_at)
+      update_attributes!(tracking_number: tracking_number, shipped_at: shipped_at)
+    end
+
+    def received_item_count
+      transfer_items.sum(:received_quantity)
+    end
+
+    def expected_item_count
+      transfer_items.sum(:expected_quantity)
     end
 
     def source_movements
