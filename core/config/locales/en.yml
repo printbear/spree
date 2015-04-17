@@ -239,6 +239,9 @@ en:
       spree/tracker:
         one: Tracker
         other: Trackers
+      spree/transfer_item:
+        one: Transfer Item
+        other: Transfer Items
       spree/user:
         one: User
         other: Users
@@ -355,6 +358,7 @@ en:
       listing: Listing
       new: New
       refund: Refund
+      receive: Receive
       save: Save
       update: Update
     activate: Activate
@@ -446,6 +450,7 @@ en:
     authorization_failure: Authorization Failure
     authorized: Authorized
     auto_capture: Auto Capture
+    auto_receive: Auto Receive
     available_on: Available On
     average_order_value: Average Order Value
     avs_response: AVS Response
@@ -761,6 +766,7 @@ en:
     iso_name: Iso Name
     item: Item
     item_description: Item Description
+    item_not_in_stock_transfer: Item is not part of the stock transfer
     item_total: Item Total
     item_total_rule:
       operators:
@@ -1099,9 +1105,13 @@ en:
     rate: Rate
     reason: Reason
     receive: receive
+    received: Received
     receive_stock: Receive Stock
     received: Received
     received_items: Received Items
+    received_successfully: Received Successfully
+    receiving: Receiving
+    receiving_match: Receiving match
     reception_status: Reception Status
     reference: Reference
     refund: Refund
@@ -1376,6 +1386,7 @@ en:
     variant_placeholder: Choose a variant
     variant_search: Variant Search
     variant_search_placeholder: "SKU or Option Value"
+    variant_to_be_received: Variant to be received
     variants: Variants
     version: Version
     void: Void

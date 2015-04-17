@@ -17,4 +17,13 @@
   Spree.routes.stock_items_api = function(stockLocationId) {
     return "<%= spree.api_stock_location_stock_items_url(:format => 'json', :stock_location_id => :stock_location_id) %>".replace(/stock_location_id/, stockLocationId);
   }
+  Spree.routes.receive_transfer_items_api = function(stockTransferNumber) {
+    return "<%= spree.receive_api_stock_transfer_transfer_items_url(:format => 'json', :stock_transfer_id => :stock_transfer_number) %>".replace(/stock_transfer_number/, stockTransferNumber)
+  }
+  Spree.routes.update_transfer_items_api = function(stockTransferNumber, itemId) {
+    url = "<%= spree.api_stock_transfer_transfer_item_url(:format => 'json', :stock_transfer_id => :stock_transfer_number, :id => :transfer_item_id) %>"
+    url = url.replace(/stock_transfer_number/, stockTransferNumber)
+    url = url.replace(/transfer_item_id/, itemId)
+    return url
+  }
 </script>
