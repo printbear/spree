@@ -8,6 +8,10 @@
     display: none;
   }
 
+  input[type='number'] {
+    min-width: 65px;
+  }
+
   .stock-variant-field-table {
     tr td {
       padding: 2px;
