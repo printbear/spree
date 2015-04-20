@@ -5,6 +5,7 @@ class IndexUpdateForms
       ev.preventDefault()
       stockItemId = $(ev.currentTarget).data('id')
       hideReadOnlyElements(stockItemId)
+      storeBackorderableState(stockItemId)
       resetCountOnHandInput(stockItemId)
       showEditForm(stockItemId)
 
@@ -13,6 +14,7 @@ class IndexUpdateForms
       ev.preventDefault()
       stockItemId = $(ev.currentTarget).data('id')
       hideEditForm(stockItemId)
+      restoreBackorderableState(stockItemId)
       showReadOnlyElements(stockItemId)
 
     # Submit
@@ -65,6 +67,14 @@ class IndexUpdateForms
     tableCell = $("#count-on-hand-#{stockItemId}")
     countText = tableCell.find('span').text().trim()
     tableCell.find("input[type='number']").val(countText)
+
+  storeBackorderableState = (stockItemId) ->
+    backorderableCheckbox = $("#backorderable-#{stockItemId}")
+    backorderableCheckbox.parent('td').attr('data-was-checked', backorderableCheckbox.prop('checked'))
+
+  restoreBackorderableState = (stockItemId) ->
+    backorderableCheckbox = $("#backorderable-#{stockItemId}")
+    backorderableCheckbox.prop('checked', backorderableCheckbox.parent('td').data('was-checked'))
 
   successHandler = (stockItem) =>
     $("#count-on-hand-#{stockItem.id} span").text(stockItem.count_on_hand)
