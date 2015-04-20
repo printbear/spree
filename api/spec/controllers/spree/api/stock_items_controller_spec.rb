@@ -199,7 +199,7 @@ module Spree
 
              it "sets the stock item's count_on_hand" do
               subject
-              expect(stock_item.reload.count_on_hand).to eq 50
+              expect(assigns(:stock_item).count_on_hand).to eq 50
             end
           end
 
@@ -210,7 +210,7 @@ module Spree
 
             it "doesn't set the stock item's count_on_hand" do
               subject
-              expect(stock_item.reload.count_on_hand).to eq 10
+              expect(assigns(:stock_item).count_on_hand).to eq 10
             end
           end
         end
@@ -244,7 +244,7 @@ module Spree
 
             it "updates the stock item's count_on_hand" do
               subject
-              expect(stock_item.reload.count_on_hand).to eq 40
+              expect(assigns(:stock_item).count_on_hand).to eq 40
             end
           end
 
@@ -255,7 +255,7 @@ module Spree
 
             it "doesn't update the stock item's count_on_hand" do
               subject
-              expect(stock_item.reload.count_on_hand).to eq 10
+              expect(assigns(:stock_item).count_on_hand).to eq 10
             end
           end
         end
