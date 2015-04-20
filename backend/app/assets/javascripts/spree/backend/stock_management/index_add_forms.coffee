@@ -59,6 +59,7 @@ class IndexAddForms
     else
       stockLocationSelect.select2()
       $("#variant-count-on-hand-#{variantId}").val("")
+      $("#variant-backorderable-#{variantId}").prop("checked", false)
 
     resetParentRowspan(variantId)
     show_flash("success", Spree.translations.created_successfully)
