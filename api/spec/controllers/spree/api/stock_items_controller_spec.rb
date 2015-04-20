@@ -136,7 +136,7 @@ module Spree
 
         it 'creates a stock movement' do
           expect { subject }.to change { Spree::StockMovement.count }.by(1)
-          expect(Spree::StockMovement.last.quantity).to eq 20
+          expect(assigns(:stock_movement).quantity).to eq 20
         end
 
         context 'variant tracks inventory' do
@@ -146,7 +146,7 @@ module Spree
 
           it "sets the stock item's count_on_hand" do
             subject
-            expect(Spree::StockItem.last.count_on_hand).to eq 20
+            expect(assigns(:stock_item).count_on_hand).to eq 20
           end
         end
 
@@ -157,7 +157,7 @@ module Spree
 
           it "doesn't set the stock item's count_on_hand" do
             subject
-            expect(Spree::StockItem.last.count_on_hand).to eq 0
+            expect(assigns(:stock_item).count_on_hand).to eq 0
           end
         end
       end
@@ -234,7 +234,7 @@ module Spree
 
           it 'creates a stock movement for the adjusted quantity' do
             expect { subject }.to change { Spree::StockMovement.count }.by(1)
-            expect(Spree::StockMovement.last.quantity).to eq 30
+            expect(assigns(:stock_movement).quantity).to eq 30
           end
 
           context 'tracking inventory' do
