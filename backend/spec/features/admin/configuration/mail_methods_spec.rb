@@ -5,7 +5,7 @@ describe "Mail Methods" do
 
   before(:each) do
     visit spree.admin_path
-    click_link "Configuration"
+    click_link "Settings"
   end
 
   context "edit" do

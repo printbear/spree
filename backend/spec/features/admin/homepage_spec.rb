@@ -31,7 +31,7 @@ describe "Homepage" do
       end
 
       it "should have a link to configuration" do
-        page.find_link("Configuration")['/admin/configurations']
+        page.find_link("Settings")['/admin/configurations']
       end
     end
 
@@ -74,7 +74,7 @@ describe "Homepage" do
       page.should_not have_link('Products')
       page.should_not have_link('Promotions')
       page.should_not have_link('Reports')
-      page.should_not have_link('Configuration')
+      page.should_not have_link('Settings')
     end
   end
 

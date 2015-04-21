@@ -5,7 +5,7 @@ describe "General Settings" do
 
   before(:each) do
     visit spree.admin_path
-    click_link "Configuration"
+    click_link "Settings"
     click_link "General Settings"
   end
 
