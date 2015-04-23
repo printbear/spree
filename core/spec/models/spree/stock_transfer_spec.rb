@@ -6,8 +6,9 @@ module Spree
     let(:source_location) { create(:stock_location_with_items) }
     let(:stock_item) { source_location.stock_items.order(:id).first }
     let(:variant) { stock_item.variant }
+    let(:stock_transfer) { StockTransfer.create(reference: 'PO123') }
 
-    subject { StockTransfer.create(reference: 'PO123') }
+    subject { stock_transfer }
 
     its(:reference) { should eq 'PO123' }
     its(:to_param) { should match /T\d+/ }
@@ -40,6 +41,58 @@ module Spree
 
       subject.source_location.should be_nil
       subject.destination_location.should eq destination_location
+    end
+
+    describe "receivable?" do
+      subject { stock_transfer.receivable? }
+
+      context "closed" do
+        before do
+          stock_transfer.update_attributes(submitted_at: Time.now)
+        end
+
+        it { should eq false }
+      end
+
+      context "shipped" do
+        before do
+          stock_transfer.update_attributes(shipped_at: Time.now)
+        end
+
+        it { should eq false }
+      end
+
+      context "received" do
+        before do
+          stock_transfer.update_attributes(received_at: Time.now)
+        end
+
+        it { should eq false }
+      end
+
+      context "received and closed" do
+        before do
+          stock_transfer.update_attributes(submitted_at: Time.now, received_at: Time.now)
+        end
+
+        it { should eq false }
+      end
+
+      context "received and shipped" do
+        before do
+          stock_transfer.update_attributes(received_at: Time.now, shipped_at: Time.now)
+        end
+
+        it { should eq false }
+      end
+
+      context "closed and shipped" do
+        before do
+          stock_transfer.update_attributes(submitted_at: Time.now, shipped_at: Time.now)
+        end
+
+        it { should eq true }
+      end
     end
   end
 end

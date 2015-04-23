@@ -158,6 +158,7 @@ Spree::Core::Engine.add_routes do
     resources :stock_transfers, :only => [:index, :show, :new, :create] do
       member do
         get :receive
+        put :finalize_receive
       end
     end
     resources :stock_locations do
