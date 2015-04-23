@@ -70,7 +70,7 @@ module Spree
               end
 
               if states[:payment]
-                before_transition :to => :complete do |order|
+                before_transition to: :complete, from: [:confirm, :payment, :delivery] do |order|
                   order.process_payments! if order.payment_required?
                 end
               end
@@ -94,7 +94,7 @@ module Spree
 
               before_transition to: :resumed, do: :ensure_line_items_are_in_stock
 
-              after_transition to: :complete, do: :finalize!
+              after_transition to: :complete, from: [:confirm, :payment, :delivery], do: :finalize!
               after_transition to: :resumed,  do: :after_resume
               after_transition to: :canceled, do: :after_cancel
 
