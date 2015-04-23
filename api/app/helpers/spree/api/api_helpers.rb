@@ -30,7 +30,8 @@ module Spree
         :stock_movement_attributes,
         :stock_item_attributes,
         :stock_transfer_attributes,
-        :transfer_item_attributes
+        :transfer_item_attributes,
+        :transfer_item_variant_attributes
       ]
 
       mattr_reader *ATTRIBUTES
@@ -150,6 +151,8 @@ module Spree
       @@stock_transfer_attributes = [:id, :number]
 
       @@transfer_item_attributes = [:id, :received_quantity]
+
+      @@transfer_item_variant_attributes = []
     end
   end
 end
