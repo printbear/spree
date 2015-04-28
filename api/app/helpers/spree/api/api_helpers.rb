@@ -29,6 +29,7 @@ module Spree
         :stock_location_attributes,
         :stock_movement_attributes,
         :stock_item_attributes,
+        :stock_transfer_attributes,
         :transfer_item_attributes
       ]
 
@@ -145,6 +146,8 @@ module Spree
         :id, :count_on_hand, :backorderable, :lock_version, :stock_location_id,
         :variant_id
       ]
+
+      @@stock_transfer_attributes = [:id, :number]
 
       @@transfer_item_attributes = [:id, :received_quantity]
     end
