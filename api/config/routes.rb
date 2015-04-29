@@ -128,7 +128,7 @@ Spree::Core::Engine.add_routes do
       member do
         post :receive
       end
-      resources :transfer_items, only: [:update]
+      resources :transfer_items, only: [:create, :update, :destroy]
     end
 
     get '/config/money', :to => 'config#money'

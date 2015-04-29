@@ -20,6 +20,9 @@
   Spree.routes.receive_stock_transfer_api = function(stockTransferNumber) {
     return "<%= spree.receive_api_stock_transfer_url(:format => 'json', :id => :stock_transfer_number) %>".replace(/stock_transfer_number/, stockTransferNumber)
   }
+  Spree.routes.create_transfer_items_api = function(stockTransferNumber) {
+    return "<%= spree.api_stock_transfer_transfer_items_url(:format => 'json', :stock_transfer_id => :stock_transfer_number) %>".replace(/stock_transfer_number/, stockTransferNumber)
+  }
   Spree.routes.update_transfer_items_api = function(stockTransferNumber, itemId) {
     url = "<%= spree.api_stock_transfer_transfer_item_url(:format => 'json', :stock_transfer_id => :stock_transfer_number, :id => :transfer_item_id) %>"
     url = url.replace(/stock_transfer_number/, stockTransferNumber)
