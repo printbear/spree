@@ -194,7 +194,7 @@ module Spree
         address = { :country => { "name" => "NoNoCountry" } }
         expect {
           Importer::Order.ensure_country_id_from_params(address)
-        }.to raise_error /NoNoCountry/
+        }.to raise_error ActiveRecord::RecordNotFound
       end
 
       it 'ensures_state_id for state fields' do
