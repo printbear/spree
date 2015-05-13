@@ -309,9 +309,14 @@ describe Spree::Payment do
             expect(payment.capture_events.first.amount).to eq(50)
           end
 
-          it "stores the uncaptured amount on the payment" do
+          it "stores the captured amount on the payment" do
             payment.capture!(6000)
-            expect(payment.uncaptured_amount).to eq(40) # 100 - 60 = 40
+            expect(payment.captured_amount).to eq(60)
+          end
+
+          it "updates the amount of the payment" do
+            payment.capture!(6000)
+            expect(payment.reload.amount).to eq(60)
           end
         end
 

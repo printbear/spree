@@ -152,7 +152,11 @@ module Spree
     end
 
     def uncaptured_amount
-      amount - capture_events.sum(:amount)
+      amount - captured_amount
+    end
+
+    def captured_amount
+      capture_events.sum(:amount)
     end
 
     private
