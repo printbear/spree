@@ -65,6 +65,7 @@ module Spree
     preference :customer_returns_per_page, :integer, default: 15
     preference :redirect_https_to_http, :boolean, :default => false
     preference :require_master_price, :boolean, default: true
+    preference :require_payment_to_ship, :boolean, default: true # Allows shipments to be ready to ship regardless of the order being paid if false
     preference :return_eligibility_number_of_days, :integer, default: 365
     preference :shipment_inc_vat, :boolean, default: false
     preference :shipping_instructions, :boolean, default: false # Request instructions/info for shipping
