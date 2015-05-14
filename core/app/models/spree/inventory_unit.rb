@@ -10,8 +10,10 @@ module Spree
     belongs_to :carton, class_name: "Spree::Carton", inverse_of: :inventory_units
     belongs_to :line_item, class_name: "Spree::LineItem", inverse_of: :inventory_units
 
-    has_many :return_items, inverse_of: :inventory_unit, dependent: :destroy
-    has_one :original_return_item, class_name: "Spree::ReturnItem", foreign_key: :exchange_inventory_unit_id, dependent: :destroy
+    has_many :return_items, inverse_of: :inventory_unit
+    has_one :original_return_item, class_name: "Spree::ReturnItem", foreign_key: :exchange_inventory_unit_id
+
+    before_destroy :ensure_no_return_items
 
     scope :backordered, -> { where state: 'backordered' }
     scope :on_hand, -> { where state: 'on_hand' }
@@ -120,6 +122,14 @@ module Spree
 
       def current_return_item
         return_items.not_cancelled.first
+      end
+
+      # If an inventory unit is associated with return items and really needs
+      # to be deleted then explicitly delete the associated return items first.
+      def ensure_no_return_items
+        if return_items.exists?
+          raise "Inventory units associated with return items should not be deleted."
+        end
       end
   end
 end
