@@ -21,6 +21,7 @@ module Spree
       :stock_movement_attributes,
       :taxon_attributes,
       :taxonomy_attributes,
+      :transfer_item_attributes,
       :user_attributes,
       :variant_attributes
     ]
@@ -89,6 +90,8 @@ module Spree
     @@taxon_attributes = [
       :name, :parent_id, :position, :icon, :description, :permalink, :taxonomy_id,
       :meta_description, :meta_keywords, :meta_title, :child_index]
+
+    @@transfer_item_attributes = [:variant_id, :expected_quantity, :received_quantity]
 
     # TODO Should probably use something like Spree.user_class.attributes
     @@user_attributes = [:email, :password, :password_confirmation]
