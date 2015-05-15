@@ -7,12 +7,12 @@
 <% if can? :admin, Spree::Admin::ReportsController %>
   <%= tab :reports, :icon => 'file'  %>
 <% end %>
-<%= tab :configurations, :general_settings, :mail_methods, :tax_categories, :tax_rates, :tax_settings, :zones, :countries, :states, :payment_methods, :shipping_methods, :shipping_categories, :stock_transfers, :stock_locations, :trackers, :label => 'settings', :icon => 'wrench', :url => spree.edit_admin_general_settings_path %>
+<%= tab :configurations, :general_settings, :mail_methods, :tax_categories, :tax_rates, :tax_settings, :zones, :countries, :states, :payment_methods, :shipping_methods, :shipping_categories, :stock_locations, :trackers, :label => 'settings', :icon => 'wrench', :url => spree.edit_admin_general_settings_path %>
 <% if can? :admin, Spree::Promotion %>
   <%= tab(:promotions, :url => spree.admin_promotions_path, :icon => 'bullhorn') %>
 <% end %>
 <% if can? :admin, Spree::StockLocation %>
-  <%= tab(:stock_items, :url => spree.admin_stock_items_path, :label => 'stock', :icon => 'cubes', match_path: %r(^/admin/stock)) %>
+  <%= tab(:stock_items, :stock_transfers, :url => spree.admin_stock_items_path, :label => 'stock', :icon => 'cubes', match_path: %r(^/admin/stock)) %>
 <% end %>
 <% if Spree.user_class && can?(:admin, Spree.user_class) %>
   <%= tab(:users, :url => spree.admin_users_path, :icon => 'user') %>
