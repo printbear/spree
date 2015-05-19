@@ -281,11 +281,15 @@ module Spree
     end
 
     def outstanding_balance
-      total - payment_total
+      if state == 'canceled'
+        -1 * payment_total
+      else
+        total - payment_total
+      end
     end
 
     def outstanding_balance?
-     self.outstanding_balance != 0
+      self.outstanding_balance != 0
     end
 
     def name
