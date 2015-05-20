@@ -160,8 +160,11 @@ Spree::Core::Engine.add_routes do
         get :receive
         put :finalize
         put :close
+        get :tracking_info
+        put :ship
       end
     end
+
     resources :stock_locations do
       resources :stock_movements, :except => [:edit, :update, :destroy]
       collection do
