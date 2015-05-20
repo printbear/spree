@@ -152,7 +152,11 @@ module Spree
     end
 
     def uncaptured_amount
-      amount - capture_events.sum(:amount)
+      amount - captured_amount
+    end
+
+    def captured_amount
+      capture_events.sum(:amount)
     end
 
     private
@@ -184,7 +188,7 @@ module Spree
       end
 
       def invalidate_old_payments
-        order.payments.with_state('checkout').where("id != ?", self.id).each do |payment|
+        order.payments.with_state('checkout').where(payment_method_id: payment_method.try(:id)).where("id != ?", self.id).each do |payment|
           payment.invalidate!
         end
       end
