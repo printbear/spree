@@ -64,7 +64,7 @@ module Spree
         can [:index, :read], StockLocation, active: true
         can [:index, :read], Taxon
         can [:index, :read], Taxonomy
-        can [:index, :read], Variant
+        can [:index, :read, :view_out_of_stock], Variant
         can [:index, :read], Zone
       end
 
