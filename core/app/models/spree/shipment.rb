@@ -330,7 +330,9 @@ module Spree
 
         refresh_rates
         save!
-        new_shipment.refresh_rates
+
+        # Order contents makes the shipping rates stale. This is required.
+        new_shipment.reload.refresh_rates
         new_shipment.save!
       end
     end
@@ -349,7 +351,9 @@ module Spree
 
         refresh_rates
         save!
-        shipment_to_transfer_to.refresh_rates
+
+        # Order contents makes the shipping rates stale. This is required.
+        shipment_to_transfer_to.reload.refresh_rates
         shipment_to_transfer_to.save!
       end
     end
