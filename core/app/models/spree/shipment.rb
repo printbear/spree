@@ -317,10 +317,55 @@ module Spree
       end
     end
 
+    def transfer_to_location(variant, quantity, stock_location)
+      if quantity <= 0
+        raise ArgumentError
+      end
+
+      transaction do
+        new_shipment = order.shipments.create!(stock_location: stock_location)
+
+        order.contents.remove(variant, quantity, self)
+        order.contents.add(variant, quantity, order.currency, new_shipment)
+
+        refresh_rates
+        save!
+
+        # Order contents makes the shipping rates stale. This is required.
+        new_shipment.reload.refresh_rates
+        new_shipment.save!
+      end
+    end
+
+    def transfer_to_shipment(variant, quantity, shipment_to_transfer_to)
+      quantity_already_shipment_to_transfer_to = shipment_to_transfer_to.manifest.find{|mi| mi.line_item.variant == variant}.try(:quantity) || 0
+      final_quantity = quantity + quantity_already_shipment_to_transfer_to
+
+      if (quantity <= 0 || self == shipment_to_transfer_to)
+        raise ArgumentError
+      end
+
+      transaction do
+        order.contents.remove(variant, quantity, self)
+        order.contents.add(variant, quantity, order.currency, shipment_to_transfer_to)
+
+        refresh_rates
+        save!
+
+        # Order contents makes the shipping rates stale. This is required.
+        shipment_to_transfer_to.reload.refresh_rates
+        shipment_to_transfer_to.save!
+      end
+    end
+
     private
 
       def manifest_unstock(item)
         stock_location.unstock item.variant, item.quantity, self
+      end
+
+      def can_get_rates?
+        order.ship_address && order.ship_address.valid?
       end
 
       def manifest_restock(item)
