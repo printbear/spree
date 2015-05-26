@@ -4,6 +4,7 @@ module Spree
 
       before_filter :find_order
       before_filter :find_and_update_shipment, only: [:ship, :ready, :add, :remove]
+      before_filter :load_transfer_params, only: [:transfer_to_location, :transfer_to_shipment]
 
       def create
         # TODO Can remove conditional here once deprecated #find_order is removed.
@@ -69,6 +70,18 @@ module Spree
         respond_with(@shipment, default_template: :show)
       end
 
+      def transfer_to_location
+        success, message = @original_shipment.transfer_to_location(@variant, @quantity, @stock_location)
+        status = success ? 201 : 422
+        render json: {success: success, message: message}, status: status
+      end
+
+      def transfer_to_shipment
+        success, message = @original_shipment.transfer_to_shipment(@variant, @quantity, @target_shipment)
+        status = success ? 201 : 422
+        render json: {success: success, message: message}, status: status
+      end
+
       private
 
       def find_order
@@ -77,6 +90,16 @@ module Spree
           @order = Spree::Order.find_by!(number: params[:order_id])
           authorize! :read, @order
         end
+      end
+
+      def load_transfer_params
+        @original_shipment         = Spree::Shipment.where(number: params[:original_shipment_number]).first
+        @target_shipment           = params[:target_shipment_number] ? Spree::Shipment.where(number: params[:target_shipment_number]).first : nil
+        @variant                   = Spree::Variant.find(params[:variant_id])
+        @quantity                  = params[:quantity].to_i
+        @stock_location            = params[:stock_location_id] ? Spree::StockLocation.find(params[:stock_location_id]) : nil
+        authorize! :read, @original_shipment
+        authorize! :create, Shipment
       end
 
       def find_and_update_shipment

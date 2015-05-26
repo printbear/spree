@@ -77,7 +77,12 @@ Spree::Core::Engine.add_routes do
     resources :countries, :only => [:index, :show] do
       resources :states, :only => [:index, :show]
     end
-    resources :shipments, :only => [:create, :update] do
+    resources :shipments, only: [:create, :update] do
+      collection do
+        post 'transfer_to_location'
+        post 'transfer_to_shipment'
+      end
+
       member do
         put :ready
         put :ship
