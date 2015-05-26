@@ -409,7 +409,6 @@ describe Spree::Order do
         # make sure we will actually capture a payment
         order.stub(payment_required?: true)
         order.stub(ensure_available_shipping_rates: true)
-        order.stub(validate_line_item_availability: true)
         order.line_items << FactoryGirl.create(:line_item)
         order.line_items.each { |li| li.inventory_units.create! }
         Spree::OrderUpdater.new(order).update
@@ -442,7 +441,6 @@ describe Spree::Order do
         # make sure we will actually capture a payment
         order.stub(payment_required?: true)
         order.stub(ensure_available_shipping_rates: true)
-        order.stub(validate_line_item_availability: true)
         order.line_items << FactoryGirl.create(:line_item)
         order.line_items.each { |li| li.inventory_units.create! }
         Spree::OrderUpdater.new(order).update
@@ -523,7 +521,7 @@ describe Spree::Order do
     it "does not attempt to process payments" do
       order.stub(:ensure_available_shipping_rates).and_return(true)
       order.stub_chain(:line_items, :present?).and_return(true)
-      order.stub(validate_line_item_availability: true)
+      order.stub_chain(:line_items, :map).and_return([])
       order.should_not_receive(:payment_required?)
       order.should_not_receive(:process_payments!)
       order.next!
