@@ -145,7 +145,7 @@ describe Spree::CheckoutController do
           # An order requires a payment to reach the complete state
           # This is because payment_required? is true on the order
           create(:payment, :amount => order.total, :order => order)
-          create(:shipment, order: order)
+          order.line_items.each {|li| li.inventory_units.create! }
           order.payments.reload
         end
 
