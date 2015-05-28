@@ -12,6 +12,7 @@ module Spree
 
     has_many :return_items, inverse_of: :inventory_unit
     has_one :original_return_item, class_name: "Spree::ReturnItem", foreign_key: :exchange_inventory_unit_id
+    has_one :unit_cancel, class_name: "Spree::UnitCancel"
 
     before_destroy :ensure_no_return_items
 
