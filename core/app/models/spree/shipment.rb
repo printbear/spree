@@ -17,7 +17,9 @@ module Spree
 
     before_validation :set_cost_zero_when_nil
 
-    attr_accessor :special_instructions
+    # TODO remove the suppress_mailer temporary variable once we are calling 'ship'
+    # from outside of the state machine and can actually pass variables through.
+    attr_accessor :special_instructions, :suppress_mailer
 
     accepts_nested_attributes_for :address
     accepts_nested_attributes_for :inventory_units
@@ -380,7 +382,7 @@ module Spree
       def after_ship
         # TODO: Get this out of the model and have OrderShipping#ship_shipment
         # called directly everywhere
-        order.shipping.ship_shipment(self)
+        order.shipping.ship_shipment(self, suppress_mailer: suppress_mailer)
       end
 
       def set_cost_zero_when_nil

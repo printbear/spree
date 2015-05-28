@@ -29,7 +29,7 @@ describe "Shipments" do
     end
 
     it "can ship a completed order" do
-      click_link "ship"
+      find(".ship-shipment-button").click
       wait_for_ajax
 
       page.should have_content("SHIPPED PACKAGE")
