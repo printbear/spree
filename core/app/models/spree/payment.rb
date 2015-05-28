@@ -33,7 +33,6 @@ module Spree
     scope :offset_payment, -> { where("source_type = 'Spree::Payment' AND amount < 0 AND state = 'completed'") }
     scope :completed, -> { with_state('completed') }
     scope :pending, -> { with_state('pending') }
-    scope :pending_or_completed, -> { where(state: %w(completed pending)) }
     scope :failed, -> { with_state('failed') }
     scope :valid, -> { where.not(state: %w(failed invalid)) }
 
