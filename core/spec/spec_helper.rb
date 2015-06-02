@@ -61,4 +61,7 @@ RSpec.configure do |config|
   config.extend WithModel
 
   config.fail_fast = ENV['FAIL_FAST'] || false
+
+  config.filter_run focus: true
+  config.run_all_when_everything_filtered = true
 end

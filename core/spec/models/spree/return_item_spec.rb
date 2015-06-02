@@ -14,7 +14,7 @@ describe Spree::ReturnItem do
   all_acceptance_statuses = Spree::ReturnItem.state_machines[:acceptance_status].states.map(&:name).map(&:to_s)
 
   before do
-    Spree::Order.any_instance.stub(return!: true)
+    allow_any_instance_of(Spree::Order).to receive(:return!).and_return(true)
   end
 
   describe '#receive!' do
@@ -27,7 +27,7 @@ describe Spree::ReturnItem do
     before do
       inventory_unit.update_attributes!(state: 'shipped')
       return_item.update_attributes!(reception_status: 'awaiting')
-      return_item.stub(:eligible_for_return?).and_return(true)
+      allow(return_item).to receive(:eligible_for_return?).and_return(true)
     end
 
     subject { return_item.receive! }
@@ -38,7 +38,7 @@ describe Spree::ReturnItem do
     end
 
     it 'attempts to accept the return item' do
-      return_item.should_receive(:attempt_accept)
+      expect(return_item).to receive(:attempt_accept)
       subject
     end
 
@@ -55,6 +55,24 @@ describe Spree::ReturnItem do
 
       it 'adds an error to the return item' do
         expect(return_item.errors[:inventory_unit]).to include "#{return_item.inventory_unit_id} has already been taken by return item #{return_item_with_dupe_inventory_unit.id}"
+      end
+    end
+
+    context 'when the received item is actually the exchange (aka customer changed mind about exchange)' do
+      let(:exchange_inventory_unit) { create(:inventory_unit, order: order,state: 'shipped') }
+      let!(:return_item_with_exchange) { create(:return_item, inventory_unit: inventory_unit, exchange_inventory_unit: exchange_inventory_unit) }
+      let!(:return_item_in_lieu) { create(:return_item, inventory_unit: exchange_inventory_unit)}
+
+      it 'unexchanges original return item' do
+        return_item_in_lieu.receive!
+
+        return_item_with_exchange.reload
+        return_item_in_lieu.reload
+        expect(return_item_with_exchange.reception_status).to eq 'unexchanged'
+        expect(return_item_in_lieu.reception_status).to eq 'received'
+        expect(return_item_in_lieu.pre_tax_amount).to eq 0
+        expect(inventory_unit.reload.state).to eq 'shipped'
+        expect(exchange_inventory_unit.reload.state).to eq 'returned'
       end
     end
 
@@ -122,7 +140,7 @@ describe Spree::ReturnItem do
     let(:return_item) { build(:return_item, pre_tax_amount: pre_tax_amount) }
 
     it "returns a Spree::Money" do
-      return_item.display_pre_tax_amount.should == Spree::Money.new(pre_tax_amount)
+      expect(return_item.display_pre_tax_amount).to eq Spree::Money.new(pre_tax_amount)
     end
   end
 
@@ -207,7 +225,7 @@ describe Spree::ReturnItem do
       let(:status) { 'awaiting' }
 
       before do
-        return_item.inventory_unit.should_receive(:return!)
+        expect(return_item.inventory_unit).to receive(:return!)
       end
 
       before { subject }
@@ -258,7 +276,7 @@ describe Spree::ReturnItem do
       context "awaiting status" do
         before do
           return_item.update_attributes!(reception_status: 'awaiting')
-          return_item.stub(:eligible_for_return?).and_return(true)
+          allow(return_item).to receive(:eligible_for_return?).and_return(true)
         end
 
         it 'accepts the return' do
@@ -289,14 +307,14 @@ describe Spree::ReturnItem do
     subject { return_item.attempt_accept! }
 
     before do
-      return_item.stub(:validator).and_return(validator_double)
+      allow(return_item).to receive(:validator).and_return(validator_double)
     end
 
     context "pending status" do
       let(:status) { 'pending' }
 
       before do
-        return_item.stub(:eligible_for_return?).and_return(true)
+        allow(return_item).to receive(:eligible_for_return?).and_return(true)
         subject
       end
 
@@ -320,12 +338,12 @@ describe Spree::ReturnItem do
       let(:validator_errors) { { number_of_days: "Return Item is outside the eligible time period" } }
 
       before do
-        return_item.stub(:eligible_for_return?).and_return(false)
+        allow(return_item).to receive(:eligible_for_return?).and_return(false)
       end
 
       context "manual intervention required" do
         before do
-          return_item.stub(:requires_manual_intervention?).and_return(true)
+          allow(return_item).to receive(:requires_manual_intervention?).and_return(true)
           subject
         end
 
@@ -340,7 +358,7 @@ describe Spree::ReturnItem do
 
       context "manual intervention not required" do
         before do
-          return_item.stub(:requires_manual_intervention?).and_return(false)
+          allow(return_item).to receive(:requires_manual_intervention?).and_return(false)
           subject
         end
 
@@ -459,24 +477,39 @@ describe Spree::ReturnItem do
     end
   end
 
+  describe "#part_of_exchange?" do
+    context "exchange variant exists, unexchanged sibling does not" do
+      before { allow(subject).to receive(:exchange_variant).and_return(mock_model(Spree::Variant)) }
+      it { expect(subject.part_of_exchange?).to eq true }
+    end
+    context "exchange variant does not exist, but unexchagned sibling does" do
+      before { expect(subject).to receive(:sibling_intended_for_exchange).with('unexchanged').and_return(true) }
+      it { expect(subject.part_of_exchange?).to eq true }
+    end
+    context "neither exchange variant nor unexchanged sibling exist" do
+      before { expect(subject).to receive(:sibling_intended_for_exchange).with('unexchanged').and_return(false) }
+      it { expect(subject.part_of_exchange?).to eq false }
+    end
+  end
+
   describe "#exchange_requested?" do
     context "exchange variant exists" do
-      before { subject.stub(:exchange_variant) { mock_model(Spree::Variant) } }
+      before { allow(subject).to receive(:exchange_variant).and_return(mock_model(Spree::Variant)) }
       it { expect(subject.exchange_requested?).to eq true }
     end
     context "exchange variant does not exist" do
-      before { subject.stub(:exchange_variant) { nil } }
+      before { allow(subject).to receive(:exchange_variant).and_return(nil) }
       it { expect(subject.exchange_requested?).to eq false }
     end
   end
 
   describe "#exchange_processed?" do
     context "exchange inventory unit exists" do
-      before { subject.stub(:exchange_inventory_unit) { mock_model(Spree::InventoryUnit) } }
+      before { allow(subject).to receive(:exchange_inventory_unit).and_return(mock_model(Spree::InventoryUnit)) }
       it { expect(subject.exchange_processed?).to eq true }
     end
     context "exchange inventory unit does not exist" do
-      before { subject.stub(:exchange_inventory_unit) { nil } }
+      before { allow(subject).to receive(:exchange_inventory_unit).and_return(nil) }
       it { expect(subject.exchange_processed?).to eq false }
     end
   end
@@ -484,22 +517,22 @@ describe Spree::ReturnItem do
   describe "#exchange_required?" do
     context "exchange has been requested and not yet processed" do
       before do
-        subject.stub(:exchange_requested?) { true }
-        subject.stub(:exchange_processed?) { false }
+        allow(subject).to receive(:exchange_requested?).and_return(true)
+        allow(subject).to receive(:exchange_processed?).and_return(false)
       end
 
       it { expect(subject.exchange_required?).to be true }
     end
 
     context "exchange has not been requested" do
-      before { subject.stub(:exchange_requested?) { false } }
+      before { allow(subject).to receive(:exchange_requested?).and_return(false) }
       it { expect(subject.exchange_required?).to be false }
     end
 
     context "exchange has been requested and processed" do
       before do
-        subject.stub(:exchange_requested?) { true }
-        subject.stub(:exchange_processed?) { true }
+        allow(subject).to receive(:exchange_requested?).and_return(true)
+        allow(subject).to receive(:exchange_processed?).and_return(true)
       end
       it { expect(subject.exchange_required?).to be false }
     end
@@ -549,10 +582,10 @@ describe Spree::ReturnItem do
     subject { return_item.build_exchange_inventory_unit }
 
     context "the return item is intended to be exchanged" do
-      before { return_item.stub(:exchange_variant).and_return(mock_model(Spree::Variant)) }
+      before { allow(return_item).to receive(:exchange_variant).and_return(mock_model(Spree::Variant)) }
 
       context "an exchange inventory unit already exists" do
-        before { return_item.stub(:exchange_inventory_unit).and_return(mock_model(Spree::InventoryUnit)) }
+        before { allow(return_item).to receive(:exchange_inventory_unit).and_return(mock_model(Spree::InventoryUnit)) }
         it { expect(subject).to be_nil }
       end
 
