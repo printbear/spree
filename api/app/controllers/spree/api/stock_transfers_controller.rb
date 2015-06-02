@@ -11,7 +11,7 @@ module Spree
         elsif transfer_item.update_attributes(received_quantity: transfer_item.received_quantity + 1)
           respond_with(@stock_transfer, status: 200, default_template: :show)
         else
-          invalid_resource!(@stock_transfer)
+          invalid_resource!(transfer_item)
         end
       end
     end
