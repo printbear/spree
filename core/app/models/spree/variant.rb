@@ -179,6 +179,10 @@ module Spree
       self.track_inventory? && Spree::Config.track_inventory_levels
     end
 
+    def display_image
+      images.first || Spree::Image.new
+    end
+
     private
       # strips all non-price-like characters from the price, taking into account locale settings
       def parse_price(price)
