@@ -4,7 +4,7 @@ module Spree
       respond_to :json
 
       before_filter :find_product
-      before_filter :product_property, :only => [:show, :update, :destroy]
+      before_filter :product_property, :only => [:show]
 
       def index
         @product_properties = @product.product_properties.
@@ -15,38 +15,6 @@ module Spree
 
       def show
         respond_with(@product_property)
-      end
-
-      def new
-      end
-
-      def create
-        authorize! :create, ProductProperty
-        @product_property = @product.product_properties.new(params[:product_property])
-        if @product_property.save
-          respond_with(@product_property, :status => 201, :default_template => :show)
-        else
-          invalid_resource!(@product_property)
-        end
-      end
-
-      def update
-        authorize! :update, ProductProperty
-        if @product_property  && @product_property.update_attributes(params[:product_property])
-          respond_with(@product_property, :status => 200, :default_template => :show)
-        else
-          invalid_resource!(@product_property)
-        end
-      end
-
-      def destroy
-        authorize! :delete, ProductProperty
-        if(@product_property)
-          @product_property.destroy
-          respond_with(@product_property, :status => 204)
-        else
-          invalid_resource!(@product_property)
-        end
       end
 
       private

@@ -16,36 +16,6 @@ module Spree
         respond_with(@variant)
       end
 
-      def new
-      end
-
-      def create
-        authorize! :create, Variant
-        @variant = scope.new(params[:variant])
-        if @variant.save
-          respond_with(@variant, :status => 201, :default_template => :show)
-        else
-          invalid_resource!(@variant)
-        end
-      end
-
-      def update
-        authorize! :update, Variant
-        @variant = scope.find(params[:id])
-        if @variant.update_attributes(params[:variant])
-          respond_with(@variant, :status => 200, :default_template => :show)
-        else
-          invalid_resource!(@product)
-        end
-      end
-
-      def destroy
-        authorize! :delete, Variant
-        @variant = scope.find(params[:id])
-        @variant.destroy
-        respond_with(@variant, :status => 204)
-      end
-
       private
         def product
           @product ||= Spree::Product.find_by_permalink(params[:product_id]) if params[:product_id]

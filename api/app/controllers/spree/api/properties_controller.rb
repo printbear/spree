@@ -3,7 +3,7 @@ module Spree
     class PropertiesController < Spree::Api::BaseController
       respond_to :json
 
-      before_filter :find_property, :only => [:show, :update, :destroy]
+      before_filter :find_property, :only => [:show]
 
       def index
         @properties = Spree::Property.
@@ -14,38 +14,6 @@ module Spree
 
       def show
         respond_with(@property)
-      end
-
-      def new
-      end
-
-      def create
-        authorize! :create, Property
-        @property = Spree::Property.new(params[:property])
-        if @property.save
-          respond_with(@property, :status => 201, :default_template => :show)
-        else
-          invalid_resource!(@property)
-        end
-      end
-
-      def update
-        authorize! :update, Property
-        if @property && @property.update_attributes(params[:property])
-          respond_with(@property, :status => 200, :default_template => :show)
-        else
-          invalid_resource!(@property)
-        end
-      end
-
-      def destroy
-        authorize! :delete, Property
-        if(@property)
-          @property.destroy
-          respond_with(@property, :status => 204)
-        else
-          invalid_resource!(@property)
-        end
       end
 
       private

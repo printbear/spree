@@ -20,31 +20,6 @@ module Spree
         show
       end
 
-      def create
-        authorize! :create, Taxonomy
-        @taxonomy = Taxonomy.new(params[:taxonomy])
-        if @taxonomy.save
-          respond_with(@taxonomy, :status => 201, :default_template => :show)
-        else
-          invalid_resource!(@taxonomy)
-        end
-      end
-
-      def update
-        authorize! :update, Taxonomy
-        if taxonomy.update_attributes(params[:taxonomy])
-          respond_with(taxonomy, :status => 200, :default_template => :show)
-        else
-          invalid_resource!(taxonomy)
-        end
-      end
-
-      def destroy
-        authorize! :delete, Taxonomy
-        taxonomy.destroy
-        respond_with(taxonomy, :status => 204)
-      end
-
       private
 
       def taxonomy

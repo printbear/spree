@@ -13,34 +13,6 @@ module Spree
         respond_with(user)
       end
 
-      def new
-      end
-
-      def create
-        authorize! :create, Spree.user_class
-        @user = Spree.user_class.new(params[:user])
-        if @user.save
-          respond_with(@user, :status => 201, :default_template => :show)
-        else
-          invalid_resource!(@user)
-        end
-      end
-
-      def update
-        authorize! :update, user
-        if user.update_attributes(params[:user])
-          respond_with(user, :status => 200, :default_template => :show)
-        else
-          invalid_resource!(user)
-        end
-      end
-
-      def destroy
-        authorize! :destroy, user
-        user.destroy
-        respond_with(user, :status => 204)
-      end
-
       private
 
       def user

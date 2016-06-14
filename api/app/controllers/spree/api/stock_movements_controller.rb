@@ -1,8 +1,6 @@
 module Spree
   module Api
     class StockMovementsController < Spree::Api::BaseController
-      before_filter :stock_location, except: [:update, :destroy]
-
       def index
         authorize! :read, StockMovement
         @stock_movements = scope.ransack(params[:q]).result.page(params[:page]).per(params[:per_page])
@@ -13,16 +11,6 @@ module Spree
         authorize! :read, StockMovement
         @stock_movement = scope.find(params[:id])
         respond_with(@stock_movement)
-      end
-
-      def create
-        authorize! :create, StockMovement
-        @stock_movement = scope.new(params[:stock_movement])
-        if @stock_movement.save
-          respond_with(@stock_movement, status: 201, default_template: :show)
-        else
-          invalid_resource!(@stock_movement)
-        end
       end
 
       private

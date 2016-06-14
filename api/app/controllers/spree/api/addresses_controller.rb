@@ -9,17 +9,6 @@ module Spree
         respond_with(@address)
       end
 
-      def update
-        authorize! :update, @order, params[:order_token]
-        find_address
-
-        if @address.update_attributes(params[:address])
-          respond_with(@address, :default_template => :show)
-        else
-          invalid_resource!(@address)
-        end
-      end
-
       private
 
         def find_order
