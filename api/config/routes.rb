@@ -1,4 +1,13 @@
 Spree::Core::Engine.routes.draw do
+  namespace :admin do
+    resources :users do
+      member do
+        put :generate_api_key, to: redirect('/')
+        put :clear_api_key, to: redirect('/')
+      end
+    end
+  end
+
   namespace :api, :defaults => { :format => 'json' } do
     resources :products, only: [:index, :show] do
       resources :variants, only: [:index, :show]
