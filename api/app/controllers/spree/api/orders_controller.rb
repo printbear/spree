@@ -18,6 +18,11 @@ module Spree
 
       private
 
+      def find_order(lock = false)
+        @order = Spree::Order.lock(lock).find_by_number!(params[:id])
+        authorize! :update, @order, params[:order_token]
+      end
+
       def find_and_authorize!
         find_order(true)
         authorize! :read, @order
