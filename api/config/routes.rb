@@ -15,7 +15,7 @@ Spree::Core::Engine.routes.draw do
     end
 
     resources :images, only: [:index, :show]
-    resources :checkouts, only: [:index, :show]
+    resources :checkouts
 
     resources :variants, only: [:index, :show]
 
