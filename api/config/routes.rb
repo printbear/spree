@@ -28,7 +28,7 @@ Spree::Core::Engine.routes.draw do
 
       resources :return_authorizations, only: [:index, :show]
 
-      resources :line_items, only: [:index, :show, :put]
+      resources :line_items, only: [:index, :show, :update]
       resources :payments, only: [:index, :show]
     end
 
