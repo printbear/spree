@@ -58,7 +58,22 @@ module Spree
           session[:guest_token] = nil
         end
 
+        def remove_invalid_session_order_id
+          user = try_spree_current_user
+
+          if session[:order_id]
+            order = Spree::Order.find(session[:order_id])
+            if user && order.user != user
+              session[:order_id] = nil
+            elsif !user && && order.user_id
+              session[:order_id] = nil
+            end
+          end
+        end
+
         def set_current_order
+          remove_invalid_session_order_id
+
           if user = try_spree_current_user
             last_incomplete_order = user.last_incomplete_spree_order
             if session[:order_id].nil? && last_incomplete_order
