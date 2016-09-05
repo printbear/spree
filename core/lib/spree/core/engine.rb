@@ -10,6 +10,7 @@ module Spree
         ActiveSupport::Notifications.subscribe(/^spree\./) do |*args|
           event_name, start_time, end_time, id, payload = args
           Activator.active.event_name_starts_with(event_name).each do |activator|
+            Rails.logger.info("Activating event for #{activator.inspect}")
             payload[:event_name] = event_name
             activator.activate(payload)
           end
