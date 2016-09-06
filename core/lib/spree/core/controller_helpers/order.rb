@@ -61,10 +61,8 @@ module Spree
         def remove_invalid_session_order_id
           return unless session[:order_id]
 
-          user = try_spree_current_user
           order = Spree::Order.find(session[:order_id]) rescue nil
-
-          session[:order_id] = nil if order.nil? || order.user != user
+          session[:order_id] = nil unless can?(:edit, order, session[:access_token])
         end
 
         def set_current_order
