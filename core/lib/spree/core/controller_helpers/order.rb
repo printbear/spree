@@ -15,6 +15,9 @@ module Spree
           options[:create_order_if_necessary] ||= false
           options[:lock] ||= false
           return @current_order if @current_order
+
+          remove_invalid_session_order_id
+
           if session[:order_id]
             current_order = Spree::Order.includes(:adjustments).lock(options[:lock]).where(id: session[:order_id], currency: current_currency).first
             @current_order = current_order unless current_order.try(:completed?)
@@ -59,10 +62,15 @@ module Spree
         end
 
         def remove_invalid_session_order_id
+          puts "in remove_invalid_session_order_id"
           return unless session[:order_id]
+          puts "session has an order_id: #{session[:order_id]}"
 
           order = Spree::Order.find(session[:order_id]) rescue nil
+          puts "session has an order: #{order}"
+          puts "can user edit order? #{can? :edit, order, session[:access_token]}"
           session[:order_id] = nil unless can?(:edit, order, session[:access_token])
+          puts "session[:order_id] is now #{session[:order_id]}"
         end
 
         def set_current_order
